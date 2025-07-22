@@ -3,33 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gym Fee Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Gym Members Tracker</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>🏋️ Gym Member Fee Tracker</h1>
+    <h1>🏋️‍♂️ Gym Members Tracker</h1>
     <form id="memberForm">
-      <input type="text" id="name" placeholder="Member Name" required />
-      <input type="text" id="phone" placeholder="Phone Number" required />
-      <input type="number" id="months" placeholder="Months Paid (e.g. 1, 3)" required min="1" />
+      <input type="text" id="name" placeholder="Name" required />
+      <input type="text" id="phone" placeholder="Phone (10 digits)" required />
+      <input type="number" id="paidAmount" placeholder="Paid Amount (e.g. 1500)" required />
+      <input type="date" id="startDate" required />
       <button type="submit">Add Member</button>
     </form>
 
+    <h2>Members List</h2>
     <table id="membersTable">
       <thead>
         <tr>
           <th>Name</th>
           <th>Phone</th>
-          <th>Paid Till</th>
+          <th>Paid</th>
+          <th>Start Date</th>
+          <th>Expiry</th>
           <th>Status</th>
           <th>WhatsApp</th>
+          <th>Edit</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
-
-    <p id="totalFees"></p>
+    <div id="totalAmount"></div>
   </div>
 
   <script src="script.js"></script>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
   <title>Gym Fee Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,10 +13,10 @@
 
     <h3>Add Member</h3>
     <form id="memberForm">
-      <input id="name" type="text" placeholder="Member Name" required />
-      <input id="phone" type="tel" placeholder="Phone Number" required />
-      <input id="fee" type="number" placeholder="Fee Paid" required />
-      <input id="days" type="number" placeholder="Duration (in days)" required />
+      <input id="name" placeholder="Member Name" required />
+      <input id="phone" placeholder="Phone Number" required />
+      <input id="fee" placeholder="Fee Paid" required />
+      <input id="days" placeholder="Duration (in days)" required />
       <button type="submit">Add</button>
     </form>
 
@@ -39,7 +39,7 @@
     <button id="exportBtn">Export All to PDF</button>
   </div>
 
-  <!-- Firebase + JS Libraries -->
+  <!-- Firebase + Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

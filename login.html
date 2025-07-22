@@ -1,69 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login</title>
-  
-  <!-- Firebase -->
+
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
+  <!-- Optional CSS -->
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+      padding: 20px;
+      background-color: #f0f0f0;
     }
-    .login-box {
-      background: #fff;
-      padding: 30px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      border-radius: 8px;
-      width: 300px;
-      text-align: center;
+    form {
+      max-width: 300px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .login-box h2 {
-      margin-bottom: 20px;
-    }
-    .login-box input {
+    input, button {
+      display: block;
       width: 100%;
+      margin-bottom: 10px;
       padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .login-box button {
-      width: 100%;
-      padding: 10px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .login-box button:hover {
-      background-color: #218838;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>Login</h2>
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="password" id="password" placeholder="Password" required>
-      <button type="submit">Login</button>
-    </form>
-  </div>
+
+  <h2 style="text-align:center;">Login</h2>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+  </form>
 
   <script>
-    // Firebase config
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
       authDomain: "gym-fees-5dbcf.firebaseapp.com",
@@ -77,19 +57,19 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Login Form Submit
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
+    // Login form submit
+    document.getElementById("loginForm").addEventListener("submit", (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
       auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-          // Redirect on success
-          window.location.href = "index.html";
+        .then((userCredential) => {
+          alert("Login Successful!");
+          window.location.href = "index.html"; // redirect to homepage
         })
-        .catch(error => {
-          alert("Login failed: " + error.message);
+        .catch((error) => {
+          alert("Login Failed: " + error.message);
         });
     });
   </script>

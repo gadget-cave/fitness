@@ -1,94 +1,122 @@
 body {
-  font-family: Arial, sans-serif;
-  background: #111;
-  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f4f4;
   margin: 0;
   padding: 0;
 }
 
-.login-box {
-  width: 300px;
-  margin: 80px auto;
-  background: #222;
+.container {
+  max-width: 1000px;
+  margin: auto;
   padding: 20px;
+  background: white;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
   border-radius: 10px;
+  margin-top: 40px;
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+}
+
+form {
+  margin-top: 20px;
+}
+
+input, select {
+  padding: 10px;
+  margin: 5px;
+  width: calc(100% - 22px);
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table th, table td {
+  padding: 12px;
+  border: 1px solid #ccc;
   text-align: center;
 }
 
-.login-box input {
-  width: 90%;
-  margin: 10px 0;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-}
-
-.login-box button {
-  padding: 10px 20px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.main-container {
-  max-width: 800px;
-  margin: 20px auto;
-  background: #1e1e1e;
-  padding: 20px;
-  border-radius: 10px;
-}
-
-.form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.form input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 5px;
-  border: none;
-}
-
-.form button {
-  padding: 10px;
+th {
   background: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  color: white;
 }
 
-#memberList {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.expired {
+  background-color: #ffdddd;
+  color: red;
+  font-weight: bold;
 }
 
-.member-box {
-  background: #333;
-  padding: 15px;
-  border-radius: 8px;
-  position: relative;
+.success {
+  background-color: #eaffea;
+  color: green;
+  font-weight: bold;
 }
 
-.member-box.expired {
-  background: #9c2e2e;
+.search-box {
+  margin-top: 20px;
+  margin-bottom: 10px;
 }
 
-.member-box h3 {
-  margin: 0 0 5px;
+.search-box input {
+  width: 100%;
 }
 
-.member-box button {
-  padding: 5px 10px;
-  background: #ffc107;
-  border: none;
-  border-radius: 5px;
-  margin-top: 10px;
-  cursor: pointer;
+.logout-btn {
+  float: right;
+  margin-top: -60px;
+  margin-right: 10px;
+  background: #dc3545;
+}
+
+.logout-btn:hover {
+  background: #a71d2a;
+}
+
+.export-btn {
+  float: left;
+  margin-top: -60px;
+  background: #28a745;
+}
+
+.export-btn:hover {
+  background: #1c7c31;
+}
+
+@media only screen and (max-width: 600px) {
+  table, th, td {
+    font-size: 14px;
+  }
+
+  .logout-btn, .export-btn {
+    width: 100%;
+    float: none;
+    margin-top: 10px;
+  }
+
+  input, button {
+    width: 100%;
+  }
 }

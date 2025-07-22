@@ -11,99 +11,104 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// UI references
-const loginSection = document.getElementById("login-section");
-const mainSection = document.getElementById("main-section");
-const membersTable = document.querySelector("#members tbody");
-const addMemberForm = document.getElementById("add-member-form");
-const logoutBtn = document.getElementById("logout-btn");
-const loginForm = document.getElementById("login-form");
+// Login Function
+function login() {
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      document.getElementById("login-section").style.display = "none";
+      document.getElementById("main-section").style.display = "block";
+      loadMembers();
+    })
+    .catch((error) => {
+      document.getElementById("loginError").textContent = "Invalid credentials";
+    });
+}
 
-// Login functionality
-loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
+// Logout
+function logout() {
+  auth.signOut().then(() => {
+    location.reload();
+  });
+}
 
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-    loginSection.style.display = "none";
-    mainSection.style.display = "block";
-  } catch (err) {
-    alert("Who are you? Incorrect credentials!");
-  }
-});
+// Add Member
+function addMember() {
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const amount = document.getElementById("amount").value.trim();
+  const expiry = document.getElementById("expiry").value;
 
-// Logout functionality
-logoutBtn.addEventListener("click", async () => {
-  await auth.signOut();
-  loginSection.style.display = "block";
-  mainSection.style.display = "none";
-});
-
-// Add member to Firestore
-addMemberForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const name = document.getElementById("member-name").value;
-  const phone = document.getElementById("member-phone").value;
-  const fee = document.getElementById("member-fee").value;
-  const expiry = document.getElementById("member-expiry").value;
-
-  if (!name || !phone || !fee || !expiry) {
-    alert("All fields required");
+  if (!name || !phone || !amount || !expiry) {
+    alert("Please fill all fields");
     return;
   }
 
-  await db.collection("members").add({
+  db.collection("members").add({
     name,
     phone,
-    fee,
-    expiry,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    amount,
+    expiry
+  }).then(() => {
+    clearForm();
   });
+}
 
-  addMemberForm.reset();
-});
+// Clear form fields
+function clearForm() {
+  document.getElementById("name").value = "";
+  document.getElementById("phone").value = "";
+  document.getElementById("amount").value = "";
+  document.getElementById("expiry").value = "";
+}
 
-// Real-time display of members
-function renderMemberTable() {
-  db.collection("members").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-    membersTable.innerHTML = ""; // Clear table
+// Load members
+function loadMembers() {
+  db.collection("members").onSnapshot(snapshot => {
+    const tbody = document.getElementById("memberData");
+    tbody.innerHTML = "";
     snapshot.forEach(doc => {
       const data = doc.data();
       const tr = document.createElement("tr");
 
-      const status = isExpired(data.expiry) ? "❌ Expired" : "✅ Active";
-      const whatsappUrl = `https://wa.me/91${data.phone}?text=Your gym fee of ₹${data.fee} expired on ${data.expiry}. Please renew.`;
+      const today = new Date().toISOString().split("T")[0];
+      const expired = data.expiry < today;
 
       tr.innerHTML = `
         <td>${data.name}</td>
-        <td>${data.phone}</td>
-        <td>₹${data.fee}</td>
+        <td><a href="https://wa.me/91${data.phone}" target="_blank">${data.phone}</a></td>
+        <td>₹${data.amount}</td>
         <td>${data.expiry}</td>
-        <td>${status}</td>
-        <td><a href="${whatsappUrl}" target="_blank">📱 Chat</a></td>
+        <td class="${expired ? 'status-expired' : 'status-active'}">
+          ${expired ? 'Expired' : 'Active'}
+        </td>
       `;
-      membersTable.appendChild(tr);
+      tbody.appendChild(tr);
     });
   });
 }
 
-// Utility: check if date is expired
-function isExpired(dateStr) {
-  const today = new Date().setHours(0,0,0,0);
-  const expiry = new Date(dateStr).setHours(0,0,0,0);
-  return expiry < today;
-}
+// Export to PDF
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("Gym Members List", 14, 20);
 
-// Auth state check
-auth.onAuthStateChanged(user => {
-  if (user) {
-    loginSection.style.display = "none";
-    mainSection.style.display = "block";
-    renderMemberTable();
-  } else {
-    loginSection.style.display = "block";
-    mainSection.style.display = "none";
-  }
-});
+  const headers = [["Name", "Phone", "Amount", "Expiry", "Status"]];
+  const rows = [];
+
+  const tableRows = document.querySelectorAll("#memberTable tbody tr");
+  tableRows.forEach(row => {
+    const cols = Array.from(row.children).map(td => td.innerText);
+    rows.push(cols);
+  });
+
+  doc.autoTable({
+    startY: 30,
+    head: headers,
+    body: rows,
+  });
+
+  doc.save("members.pdf");
+}

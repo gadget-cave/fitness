@@ -1,36 +1,46 @@
 body {
-  font-family: Arial;
-  margin: 20px;
-  background: #f7f7f7;
+  font-family: Arial, sans-serif;
+  background: #f1f1f1;
+  padding: 20px;
 }
-h1 {
-  text-align: center;
+
+.hidden {
+  display: none;
 }
-form, .actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
+
+form {
   margin-bottom: 20px;
 }
-input, button {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+
+input {
+  margin: 5px;
+  padding: 8px;
 }
+
+button {
+  margin: 5px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  background: white;
+  margin-top: 20px;
 }
+
 th, td {
-  border: 1px solid #aaa;
+  border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
 }
-.expired {
-  color: red;
+
+th {
+  background-color: #4CAF50;
+  color: white;
 }
-.valid {
-  color: green;
+
+.expired {
+  background-color: #ffcccc;
 }

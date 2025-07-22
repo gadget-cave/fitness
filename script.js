@@ -1,12 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, getDocs, onSnapshot, query, orderBy
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getAuth, signInWithEmailAndPassword, signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-// Firebase config
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
   authDomain: "gym-fees-5dbcf.firebaseapp.com",
@@ -15,98 +7,80 @@ const firebaseConfig = {
   messagingSenderId: "423386853721",
   appId: "1:423386853721:web:fafd195e95e6b1cb091c48"
 };
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// Initialize
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const membersCollection = collection(db, "members");
+const loginContainer = document.getElementById("loginContainer");
+const adminContainer = document.getElementById("adminContainer");
+const membersTable = document.getElementById("membersTable");
 
-// Elements
-const loginSection = document.getElementById("loginSection");
-const mainSection = document.getElementById("mainSection");
-const loginForm = document.getElementById("loginForm");
-const logoutBtn = document.getElementById("logoutBtn");
-const memberForm = document.getElementById("memberForm");
-const memberTableBody = document.querySelector("#memberTable tbody");
+const ADMIN_EMAIL = "admin@example.com";
+const ADMIN_PASS = "admin123";
 
-// Login
-loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = loginForm.email.value;
-  const password = loginForm.password.value;
-
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    loginSection.style.display = "none";
-    mainSection.style.display = "block";
-  } catch (error) {
-    alert("Who are you?");
+function login() {
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+  if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
+    loginContainer.classList.add("hidden");
+    adminContainer.classList.remove("hidden");
+    loadMembers();
+  } else {
+    document.getElementById("loginStatus").innerText = "Who are you?";
   }
-});
+}
 
-// Logout
-logoutBtn.addEventListener("click", () => {
-  signOut(auth).then(() => {
-    loginSection.style.display = "block";
-    mainSection.style.display = "none";
+function logout() {
+  adminContainer.classList.add("hidden");
+  loginContainer.classList.remove("hidden");
+  document.getElementById("email").value = "";
+  document.getElementById("password").value = "";
+}
+
+function addMember() {
+  const name = document.getElementById("memberName").value;
+  const phone = document.getElementById("phone").value;
+  const fees = document.getElementById("fees").value;
+  const expiryDate = document.getElementById("expiryDate").value;
+
+  if (!name || !phone || !fees || !expiryDate) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  const newRef = db.ref("members").push();
+  newRef.set({
+    name,
+    phone,
+    fees,
+    expiryDate
   });
-});
 
-// Add Member
-memberForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  document.getElementById("memberName").value = "";
+  document.getElementById("phone").value = "";
+  document.getElementById("fees").value = "";
+  document.getElementById("expiryDate").value = "";
+}
 
-  const name = memberForm.name.value;
-  const phone = memberForm.phone.value;
-  const fee = memberForm.fee.value;
-  const date = memberForm.date.value;
-
-  try {
-    await addDoc(membersCollection, {
-      name,
-      phone,
-      fee,
-      date
-    });
-    memberForm.reset();
-  } catch (err) {
-    alert("Error adding member.");
-  }
-});
-
-// Load and Display Members
 function loadMembers() {
-  onSnapshot(query(membersCollection, orderBy("date", "desc")), (snapshot) => {
-    memberTableBody.innerHTML = "";
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+  db.ref("members").on("value", (snapshot) => {
+    membersTable.innerHTML = "";
+    snapshot.forEach(child => {
+      const data = child.val();
       const tr = document.createElement("tr");
 
-      const currentDate = new Date();
-      const joinedDate = new Date(data.date);
-      const expireDate = new Date(joinedDate);
-      expireDate.setDate(expireDate.getDate() + 30);
-
-      const isExpired = currentDate > expireDate;
-      const status = isExpired ? "Expired" : "Active";
-
-      const whatsappMsg = `Hello ${data.name}, your gym fee status is ${status}. Please renew if expired.`;
-      const whatsappLink = `https://wa.me/91${data.phone}?text=${encodeURIComponent(whatsappMsg)}`;
+      const today = new Date().toISOString().split("T")[0];
+      const status = (data.expiryDate < today) ? "Expired" : "Active";
+      const statusClass = (data.expiryDate < today) ? "expired" : "";
 
       tr.innerHTML = `
         <td>${data.name}</td>
         <td>${data.phone}</td>
-        <td>₹${data.fee}</td>
-        <td>${data.date}</td>
-        <td style="color:${isExpired ? 'red' : 'green'}">${status}</td>
-        <td>${expireDate.toISOString().split('T')[0]}</td>
-        <td><a href="${whatsappLink}" target="_blank">Chat</a></td>
+        <td>₹${data.fees}</td>
+        <td>${data.expiryDate}</td>
+        <td class="${statusClass}">${status}</td>
+        <td><a href="https://wa.me/91${data.phone}?text=Your+fees+of+₹${data.fees}+is+${status}" target="_blank">Chat</a></td>
       `;
-
-      memberTableBody.appendChild(tr);
+      membersTable.appendChild(tr);
     });
   });
 }
-
-loadMembers();

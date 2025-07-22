@@ -1,97 +1,100 @@
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
   authDomain: "gym-fees-5dbcf.firebaseapp.com",
   projectId: "gym-fees-5dbcf",
-  storageBucket: "gym-fees-5dbcf.firebasestorage.app",
+  storageBucket: "gym-fees-5dbcf.appspot.com",
   messagingSenderId: "423386853721",
   appId: "1:423386853721:web:fafd195e95e6b1cb091c48"
 };
 
-
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Elements
-const memberForm = document.getElementById('memberForm');
-const logoutBtn = document.getElementById('logoutBtn');
-const exportBtn = document.getElementById('exportBtn');
-const memberList = document.getElementById('memberList');
-
 // Add member
-memberForm.addEventListener('submit', (e) => {
+document.getElementById("memberForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const name = document.getElementById('name').value;
-  const phone = document.getElementById('phone').value;
-  const fee = document.getElementById('fee').value;
-  const days = parseInt(document.getElementById('days').value);
-  const start = new Date();
-  const end = new Date();
-  end.setDate(start.getDate() + days);
+  const name = nameInput.value.trim();
+  const phone = phoneInput.value.trim();
+  const fee = feeInput.value.trim();
+  const days = parseInt(daysInput.value.trim());
 
-  db.collection('members').add({
+  const start = new Date();
+  const end = new Date(start);
+  end.setDate(end.getDate() + days);
+
+  await db.collection("members").add({
     name, phone, fee,
-    start: start.toISOString(),
-    end: end.toISOString()
-  }).then(() => {
-    alert("Member added!");
-    memberForm.reset();
-    loadMembers();
+    start: firebase.firestore.Timestamp.fromDate(start),
+    end: firebase.firestore.Timestamp.fromDate(end),
   });
+
+  memberForm.reset();
+  loadMembers();
 });
 
 // Load members
-function loadMembers() {
+async function loadMembers() {
+  const snapshot = await db.collection("members").orderBy("start", "desc").get();
+  memberList.innerHTML = "";
+
   const now = new Date();
-  db.collection('members').get().then(snapshot => {
-    memberList.innerHTML = "";
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const start = new Date(data.start);
-      const end = new Date(data.end);
-      const expired = end < now;
 
-      const row = document.createElement('tr');
-      if (expired) row.classList.add('expired');
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const start = data.start.toDate();
+    const end = data.end.toDate();
 
-      row.innerHTML = `
-        <td>${data.name}</td>
-        <td>${data.phone}</td>
-        <td>₹${data.fee}</td>
-        <td>${start.toLocaleDateString()}</td>
-        <td>${end.toLocaleDateString()}</td>
-        <td>${expired ? "Expired" : "Active"}</td>
-        <td><a href="https://wa.me/91${data.phone}" target="_blank">WhatsApp</a></td>
-      `;
-      memberList.appendChild(row);
-    });
+    const isActive = end > now;
+    const statusClass = isActive ? "status-active" : "status-expired";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${data.name}</td>
+      <td>${data.phone}</td>
+      <td>${data.fee}</td>
+      <td>${start.toLocaleDateString()}</td>
+      <td>${end.toLocaleDateString()}</td>
+      <td class="${statusClass}">${isActive ? "Active" : "Expired"}</td>
+      <td><button onclick="deleteMember('${doc.id}')">Delete</button></td>
+    `;
+    memberList.appendChild(tr);
   });
 }
 
+// Delete member
+async function deleteMember(id) {
+  await db.collection("members").doc(id).delete();
+  loadMembers();
+}
+
 // Export to PDF
-exportBtn.addEventListener('click', () => {
+document.getElementById("exportBtn").addEventListener("click", async () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  let y = 10;
+  const snapshot = await db.collection("members").get();
 
-  db.collection('members').get().then(snapshot => {
-    doc.text("Gym Members Report", 10, y);
+  doc.text("Gym Members Report", 20, 10);
+  let y = 20;
+
+  snapshot.forEach((docSnap, i) => {
+    const data = docSnap.data();
+    const start = data.start.toDate().toLocaleDateString();
+    const end = data.end.toDate().toLocaleDateString();
+    const line = `${i + 1}. ${data.name} - ${data.phone} - ₹${data.fee} - ${start} to ${end}`;
+    doc.text(line, 10, y);
     y += 10;
-
-    snapshot.forEach(docSnap => {
-      const m = docSnap.data();
-      doc.text(`Name: ${m.name}, Phone: ${m.phone}, Fee: ₹${m.fee}`, 10, y);
-      y += 10;
-    });
-
-    doc.save("gym-members.pdf");
   });
+
+  doc.save("gym_members.pdf");
 });
 
-// Logout
-logoutBtn.addEventListener('click', () => {
-  alert('Logged out (dummy)');
-  // Hook in real auth logic if needed
+// Dummy logout
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  alert("Logged out!");
+  // You can redirect to login.html if using login system
 });
 
-// Initial load
+// Load members on start
 loadMembers();

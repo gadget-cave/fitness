@@ -1,53 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gym Fee Tracker</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f7f7f7;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #eee;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>🏋️‍♂️ Gym Fee Tracker</h1>
-      <button id="logoutBtn" class="logout">Logout</button>
+      <h2>Gym Fee Tracker</h2>
+      <button id="logoutBtn">Logout</button>
     </div>
 
-    <div class="form-section">
-      <h2>Add New Member</h2>
-      <form id="memberForm">
-        <input type="text" id="name" placeholder="Member Name" required />
-        <input type="tel" id="phone" placeholder="Phone Number" required />
-        <input type="number" id="fee" placeholder="Fee Paid (₹)" required />
-        <input type="number" id="days" placeholder="Duration (in days)" required />
-        <button type="submit" class="add-btn">➕ Add Member</button>
-      </form>
-    </div>
+    <h3>Add Member</h3>
+    <form id="memberForm">
+      <input id="name" placeholder="Member Name" required />
+      <input id="phone" placeholder="Phone Number" required />
+      <input id="fee" placeholder="Fee Paid" required />
+      <input id="days" placeholder="Duration (in days)" required />
+      <button type="submit">Add</button>
+    </form>
 
-    <div class="members-section">
-      <h2>All Members</h2>
-      <table id="membersTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Fee</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="memberList"></tbody>
-      </table>
-      <button id="exportBtn" class="export-btn">📄 Export to PDF</button>
-    </div>
+    <h3>All Members</h3>
+    <table id="membersTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Fee</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="memberList"></tbody>
+    </table>
+
+    <button id="exportBtn">Export All to PDF</button>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MSG_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Auth check
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert("Who are you?");
+        window.location.href = "login.html"; // redirect if not logged in
+      }
+    });
+
+    // Logout
+    document.getElementById("logoutBtn").onclick = () => {
+      auth.signOut().then(() => window.location.href = "login.html");
+    };
+
+    // Add Member
+    document.getElementById("memberForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const phone = document.getElementById("phone").value;
+      const fee = document.getElementById("fee").value;
+      const days = parseInt(document.getElementById("days").value);
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(startDate.getDate() + days);
+
+      await db.collection("members").add({
+        name, phone, fee,
+        start: startDate.toISOString().split("T")[0],
+        end: endDate.toISOString().split("T")[0]
+      });
+
+      document.getElementById("memberForm").reset();
+      loadMembers();
+    });
+
+    // Load Members
+    async function loadMembers() {
+      const snapshot = await db.collection("members").get();
+      const tbody = document.getElementById("memberList");
+      tbody.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const today = new Date().toISOString().split("T")[0];
+        const status = today > data.end ? "Expired" : "Active";
+        const row = `
+          <tr>
+            <td>${data.name}</td>
+            <td>${data.phone}</td>
+            <td>₹${data.fee}</td>
+            <td>${data.start}</td>
+            <td>${data.end}</td>
+            <td>${status}</td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Export PDF
+    document.getElementById("exportBtn").onclick = async () => {
+      const snapshot = await db.collection("members").get();
+      const rows = [];
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        rows.push([d.name, d.phone, `₹${d.fee}`, d.start, d.end]);
+      });
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.autoTable({
+        head: [['Name', 'Phone', 'Fee', 'Start', 'End']],
+        body: rows
+      });
+      doc.save("members.pdf");
+    };
+
+    // Load on page load
+    window.onload = loadMembers;
+  </script>
 </body>
 </html>

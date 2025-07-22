@@ -1,45 +1,61 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f4f4f4;
   margin: 0;
   padding: 0;
+  background: #f0f2f5;
 }
+
 .container {
-  max-width: 600px;
-  margin: 30px auto;
-  background: #fff;
+  max-width: 800px;
+  margin: 40px auto;
+  background: white;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 10px;
 }
-input, button {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  font-size: 16px;
+
+h2, h3 {
+  text-align: center;
 }
-button {
-  background-color: #28a745;
-  color: #fff;
-  border: none;
-  cursor: pointer;
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
 }
-button:hover {
-  background-color: #218838;
+
+form input {
+  padding: 8px;
+  width: 180px;
 }
+
+form button {
+  padding: 8px 20px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
 }
+
 th, td {
+  padding: 10px;
   border: 1px solid #ccc;
-  padding: 8px;
   text-align: center;
 }
-th {
-  background-color: #f2f2f2;
+
+.status-active {
+  color: green;
+  font-weight: bold;
 }
-.expired {
-  background-color: #ffcaca;
+
+.status-expired {
+  color: red;
+  font-weight: bold;
+}
+
+button {
+  margin-top: 10px;
+  cursor: pointer;
 }

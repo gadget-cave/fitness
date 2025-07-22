@@ -1,56 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gym Fees Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gym Members Tracker</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-  <div class="login-container" id="login-section">
+  <div class="login-box" id="loginBox">
     <h2>Admin Login</h2>
-    <input type="text" id="adminPhone" placeholder="Enter phone number" />
-    <input type="password" id="adminPass" placeholder="Enter password" />
+    <input type="text" id="loginPhone" placeholder="Phone Number">
+    <input type="password" id="loginPassword" placeholder="Password">
     <button onclick="login()">Login</button>
+    <p id="loginError" class="error"></p>
   </div>
 
-  <div class="dashboard hidden" id="main-section">
-    <div class="header">
-      <h2>Gym Fees Tracker</h2>
-      <button onclick="logout()">Logout</button>
-    </div>
-
-    <div class="form-section">
-      <input type="text" id="memberName" placeholder="Member Name" />
-      <input type="text" id="memberPhone" placeholder="Phone Number" />
-      <input type="number" id="feeAmount" placeholder="Fee Amount" />
-      <input type="date" id="paymentDate" />
+  <div id="mainContent" style="display: none;">
+    <h2>Gym Member Tracker</h2>
+    <div class="form">
+      <input type="text" id="name" placeholder="Member Name">
+      <input type="text" id="phone" placeholder="Phone Number">
+      <input type="date" id="joinDate">
+      <input type="number" id="duration" placeholder="Fee Duration (days)">
       <button onclick="addMember()">Add Member</button>
     </div>
 
-    <div class="table-section">
-      <h3>All Members</h3>
-      <button onclick="exportAllPDF()">Export All to PDF</button>
-      <table id="memberTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Fee</th>
-            <th>Paid Date</th>
-            <th>Status</th>
-            <th>PDF</th>
-            <th>Delete</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <!-- Dynamically filled -->
-        </tbody>
-      </table>
+    <div class="export-buttons">
+      <button onclick="exportAllToPDF()">Export All to PDF</button>
     </div>
+
+    <table id="memberTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Join Date</th>
+          <th>Expiry</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="memberBody"></tbody>
+    </table>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

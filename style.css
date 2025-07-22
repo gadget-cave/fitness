@@ -1,25 +1,25 @@
-/* Reset and Base */
+/* Reset and base */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  font-family: "Segoe UI", sans-serif;
-  background-color: #f4f7fa;
-  padding: 20px;
+  background-color: #f4f7f8;
   color: #333;
+  padding: 20px;
 }
 
 /* Container */
 .container {
-  max-width: 960px;
-  margin: 0 auto;
-  background: #fff;
-  padding: 30px;
+  max-width: 1000px;
+  margin: auto;
+  background: white;
+  padding: 25px;
   border-radius: 15px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
 }
 
 /* Header */
@@ -27,53 +27,53 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .header h2 {
-  color: #0d6efd;
+  color: #444;
 }
 
 #logoutBtn {
-  padding: 8px 16px;
-  background-color: #dc3545;
-  color: white;
+  background-color: #ff4d4d;
   border: none;
-  border-radius: 5px;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
 #logoutBtn:hover {
-  background-color: #c82333;
+  background-color: #ff1a1a;
 }
 
-/* Forms */
+/* Form */
 form {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 25px;
 }
 
 form input {
+  flex: 1;
+  min-width: 180px;
   padding: 10px;
-  font-size: 16px;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  border-radius: 8px;
 }
 
 form button {
-  padding: 10px;
-  font-size: 16px;
-  background-color: #0d6efd;
-  color: white;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
+  background-color: #0077ff;
+  color: white;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 
 form button:hover {
-  background-color: #0b5ed7;
+  background-color: #005bcc;
 }
 
 /* Table */
@@ -84,87 +84,69 @@ table {
 }
 
 thead {
-  background-color: #0d6efd;
+  background-color: #0077ff;
   color: white;
 }
 
 th, td {
+  padding: 12px 15px;
   text-align: center;
-  padding: 12px;
-  border: 1px solid #ddd;
-  font-size: 14px;
+  border-bottom: 1px solid #ddd;
 }
 
-tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-
-/* WhatsApp Button */
-.whatsapp-btn {
-  background-color: #25D366;
+td button {
+  background-color: #00c853;
   color: white;
-  padding: 6px 12px;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 5px;
   cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
 }
 
-.whatsapp-btn:hover {
-  background-color: #1ebe5b;
+td button:hover {
+  background-color: #00a044;
+}
+
+.status-expired {
+  background-color: #ff1744;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.status-active {
+  background-color: #00c853;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
 }
 
 /* Export Button */
 #exportBtn {
-  background-color: #20c997;
+  background-color: #444;
   color: white;
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 10px 15px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 
 #exportBtn:hover {
-  background-color: #198754;
+  background-color: #222;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+/* Responsive */
+@media screen and (max-width: 768px) {
+  form {
+    flex-direction: column;
+  }
+
+  form input {
+    width: 100%;
+  }
+
   .header {
     flex-direction: column;
-    gap: 15px;
-  }
-
-  table, thead, tbody, th, td, tr {
-    display: block;
-  }
-
-  thead {
-    display: none;
-  }
-
-  tr {
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 10px;
-  }
-
-  td {
-    text-align: left;
-    padding: 8px;
-    position: relative;
-  }
-
-  td::before {
-    content: attr(data-label);
-    font-weight: bold;
-    display: block;
-    margin-bottom: 5px;
-    color: #0d6efd;
+    gap: 10px;
   }
 }

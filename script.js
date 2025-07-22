@@ -1,6 +1,4 @@
-// ------------------------
 // Firebase Configuration
-// ------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
   authDomain: "gym-fees-5dbcf.firebaseapp.com",
@@ -10,109 +8,115 @@ const firebaseConfig = {
   appId: "1:423386853721:web:fafd195e95e6b1cb091c48"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const db = firebase.firestore();
+const auth = firebase.auth();
 
-// ------------------------
-// Authentication
-// ------------------------
+const loginSection = document.getElementById('loginSection');
+const appSection = document.getElementById('appSection');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const addMemberBtn = document.getElementById('addMemberBtn');
+const exportBtn = document.getElementById('exportBtn');
 
-// Check if user is logged in
-auth.onAuthStateChanged(user => {
-  if (!user) {
-    alert("Who are you?");
-    window.location.href = "login.html";
-  } else {
-    loadMembers(); // Load member data after successful login
-  }
+loginBtn.addEventListener('click', () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      loginSection.style.display = 'none';
+      appSection.style.display = 'block';
+      fetchMembers();
+    })
+    .catch(() => {
+      alert("Who are you?");
+    });
 });
 
-// Logout functionality
-document.getElementById("logoutBtn").addEventListener("click", () => {
+logoutBtn.addEventListener('click', () => {
   auth.signOut().then(() => {
-    window.location.href = "login.html";
+    loginSection.style.display = 'block';
+    appSection.style.display = 'none';
   });
 });
 
-// ------------------------
-// Add Member
-// ------------------------
-document.getElementById("memberForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+addMemberBtn.addEventListener('click', () => {
+  const name = document.getElementById('memberName').value.trim();
+  const fee = document.getElementById('memberFee').value.trim();
+  const expiry = document.getElementById('memberExpiry').value.trim();
+  const phone = document.getElementById('memberPhone').value.trim();
 
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const fee = document.getElementById("fee").value.trim();
-  const days = parseInt(document.getElementById("days").value);
-
-  if (!name || !phone || !fee || isNaN(days)) {
-    alert("Please fill in all fields correctly.");
+  if (!name || !fee || !expiry || !phone) {
+    alert("Fill all fields");
     return;
   }
 
-  const startDate = new Date();
-  const endDate = new Date();
-  endDate.setDate(startDate.getDate() + days);
-
-  await db.collection("members").add({
-    name,
-    phone,
-    fee,
-    start: firebase.firestore.Timestamp.fromDate(startDate),
-    end: firebase.firestore.Timestamp.fromDate(endDate),
+  db.collection("members").add({
+    name: name,
+    fee: fee,
+    expiry: expiry,
+    phone: phone,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    document.getElementById('memberName').value = '';
+    document.getElementById('memberFee').value = '';
+    document.getElementById('memberExpiry').value = '';
+    document.getElementById('memberPhone').value = '';
+    fetchMembers();
   });
-
-  document.getElementById("memberForm").reset();
 });
 
-// ------------------------
-// Load Members
-// ------------------------
-function loadMembers() {
-  db.collection("members").orderBy("end", "asc").onSnapshot(snapshot => {
-    const list = document.getElementById("memberList");
-    list.innerHTML = "";
+function fetchMembers() {
+  const table = document.getElementById('membersTable');
+  table.innerHTML = `
+    <tr>
+      <th>Name</th>
+      <th>Fee</th>
+      <th>Expiry</th>
+      <th>Phone</th>
+      <th>Status</th>
+    </tr>`;
 
+  db.collection("members").orderBy("timestamp", "desc").get().then(snapshot => {
     snapshot.forEach(doc => {
       const data = doc.data();
-      const start = data.start.toDate();
-      const end = data.end.toDate();
-      const today = new Date();
-      const isActive = end >= today;
+      const whatsappMsg = `https://wa.me/91${data.phone}?text=Hi ${data.name}, your gym fee of ₹${data.fee} has expired on ${data.expiry}. Please renew now.`;
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${data.name}</td>
-        <td>${data.phone}</td>
-        <td>₹${data.fee}</td>
-        <td>${start.toLocaleDateString()}</td>
-        <td>${end.toLocaleDateString()}</td>
-        <td style="color:${isActive ? 'green' : 'red'}">${isActive ? 'Active' : 'Expired'}</td>
-        <td><button onclick="deleteMember('${doc.id}')">🗑️</button></td>
-      `;
-      list.appendChild(tr);
+      const row = `
+        <tr>
+          <td>${data.name}</td>
+          <td>₹${data.fee}</td>
+          <td>${data.expiry}</td>
+          <td>${data.phone}</td>
+          <td><a href="${whatsappMsg}" target="_blank" class="btn">WhatsApp</a></td>
+        </tr>`;
+      table.innerHTML += row;
     });
   });
 }
 
-// ------------------------
-// Delete Member
-// ------------------------
-function deleteMember(id) {
-  if (confirm("Are you sure you want to delete this member?")) {
-    db.collection("members").doc(id).delete();
-  }
-}
-
-// ------------------------
 // Export to PDF
-// ------------------------
-document.getElementById("exportBtn").addEventListener("click", () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+exportBtn.addEventListener('click', () => {
+  const element = document.getElementById('membersTable');
+  const opt = {
+    margin:       0.5,
+    filename:     'members_list.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+  html2pdf().from(element).set(opt).save();
+});
 
-  doc.autoTable({ html: '#membersTable' });
-  doc.save("gym_members.pdf");
+// Auth state
+auth.onAuthStateChanged(user => {
+  if (user) {
+    loginSection.style.display = 'none';
+    appSection.style.display = 'block';
+    fetchMembers();
+  } else {
+    loginSection.style.display = 'block';
+    appSection.style.display = 'none';
+  }
 });

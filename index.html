@@ -1,53 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gym Member Manager</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gadget Cave - Member Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-
-  <div class="container">
-    <h1>🏋️‍♂️ Gym Member Manager</h1>
-
-    <div id="login-section">
-      <input type="text" id="loginEmail" placeholder="Email">
-      <input type="password" id="loginPassword" placeholder="Password">
-      <button onclick="login()">Login</button>
-      <p id="loginError" class="error-text"></p>
-    </div>
-
-    <div id="main-section" style="display:none;">
-      <div class="form-area">
-        <input type="text" id="name" placeholder="Member Name">
-        <input type="text" id="phone" placeholder="Phone Number">
-        <input type="number" id="amount" placeholder="Fee Paid (₹)">
-        <input type="date" id="expiry" placeholder="Expiry Date">
-        <button onclick="addMember()">Add Member</button>
-        <button onclick="exportPDF()">Export to PDF</button>
-        <button onclick="logout()">Logout</button>
-      </div>
-
-      <table id="memberTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Amount</th>
-            <th>Expiry</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="memberData"></tbody>
-      </table>
-    </div>
+  <div class="login-container" id="loginPage">
+    <h2>Login</h2>
+    <input type="text" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+    <p id="loginError"></p>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <div class="main-container hidden" id="mainPage">
+    <div class="top-bar">
+      <h2>🧑‍💼 Member Management</h2>
+      <button onclick="logout()">Logout</button>
+    </div>
+    <div class="form-container">
+      <input type="text" id="memberName" placeholder="Name" />
+      <input type="text" id="memberPhone" placeholder="Phone" />
+      <input type="text" id="memberFees" placeholder="Fees" />
+      <input type="date" id="expiryDate" placeholder="Expiry Date" />
+      <button onclick="addMember()">Add Member</button>
+      <button onclick="exportPDF()">Export to PDF</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Fees</th>
+          <th>Expiry Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="memberTable"></tbody>
+    </table>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

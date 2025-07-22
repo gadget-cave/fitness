@@ -1,135 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Member Manager</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .login-box, .member-box { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
-    .hidden { display: none; }
-    input, button, select { width: 100%; padding: 10px; margin: 10px 0; }
-    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 20px;
+            background-color: #f2f2f2;
+        }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .hidden { display: none; }
+        label { display: block; margin-top: 10px; }
+        input { width: 100%; padding: 8px; }
+        button { padding: 10px; margin-top: 15px; width: 100%; cursor: pointer; }
+        .member {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+    </style>
 </head>
 <body>
-  <div class="login-box" id="loginBox">
-    <h2>Login</h2>
-    <input type="text" id="loginNumber" placeholder="Enter Number">
-    <input type="password" id="loginPassword" placeholder="Enter Password">
-    <button onclick="handleLogin()">Login</button>
-  </div>
+<div class="container">
+    <div id="loginSection">
+        <h1>Login</h1>
+        <input type="text" id="mobile" placeholder="Enter Mobile Number">
+        <input type="password" id="password" placeholder="Enter Password">
+        <button onclick="login()">Login</button>
+    </div>
 
-  <div class="member-box hidden" id="mainApp">
-    <h2>Add Member</h2>
-    <input type="text" id="name" placeholder="Name">
-    <input type="text" id="address" placeholder="Address">
-    <input type="number" id="phone" placeholder="Phone">
-    <input type="text" id="place" placeholder="Place">
-    <input type="date" id="startDate" placeholder="Starting Date">
-    <input type="text" id="paidAmount" placeholder="Paid Amount">
-    <button onclick="addMember()">Add Member</button>
-    <button onclick="exportAllPDF()">Export All as PDF</button>
+    <div id="homeSection" class="hidden">
+        <h1>Member Management</h1>
 
-    <h2>Members</h2>
-    <table id="memberTable"></table>
-  </div>
+        <label>Name:</label>
+        <input type="text" id="name">
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
-    const USERS = [{ number: '917994160120', password: 'hisham@123' }];
-    const MEMBER_KEY = 'members';
+        <label>Phone Number:</label>
+        <input type="text" id="phone">
 
-    function handleLogin() {
-      const number = document.getElementById('loginNumber').value;
-      const password = document.getElementById('loginPassword').value;
-      const isValid = USERS.some(user => user.number === number && user.password === password);
+        <label>Payment Plan:</label>
+        <input type="text" id="plan">
 
-      if (isValid) {
-        document.getElementById('loginBox').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        loadMembers();
-      } else {
-        document.body.innerHTML = '<h1 style="text-align:center; margin-top:100px;">How are you?</h1>';
-      }
+        <label>Payment Date:</label>
+        <input type="date" id="paymentDate">
+
+        <label>Starting Date:</label>
+        <input type="date" id="startingDate">
+
+        <label>Paid Amount:</label>
+        <input type="number" id="paidAmount">
+
+        <button onclick="addMember()">Add/Update Member</button>
+        <button onclick="exportAllPDF()">Export All to PDF</button>
+
+        <div id="members"></div>
+    </div>
+
+    <div id="unauth" class="hidden">
+        <h1>How are you?</h1>
+    </div>
+</div>
+
+<script>
+    const ADMIN_MOBILE = "917994160120";
+    const ADMIN_PASS = "hisham@123";
+
+    function login() {
+        const mobile = document.getElementById("mobile").value;
+        const password = document.getElementById("password").value;
+        if (mobile === ADMIN_MOBILE && password === ADMIN_PASS) {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("homeSection").classList.remove("hidden");
+            loadMembers();
+        } else {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("unauth").classList.remove("hidden");
+        }
     }
 
     function getMembers() {
-      return JSON.parse(localStorage.getItem(MEMBER_KEY) || '[]');
+        return JSON.parse(localStorage.getItem("members")) || [];
     }
 
-    function saveMembers(data) {
-      localStorage.setItem(MEMBER_KEY, JSON.stringify(data));
-    }
-
-    function loadMembers() {
-      const members = getMembers();
-      const table = document.getElementById('memberTable');
-      table.innerHTML = '<tr><th>Name</th><th>Address</th><th>Phone</th><th>Place</th><th>Start Date</th><th>Paid</th><th>Edit</th><th>PDF</th></tr>';
-      members.forEach((m, i) => {
-        table.innerHTML += `<tr>
-          <td>${m.name}</td>
-          <td>${m.address}</td>
-          <td>${m.phone}</td>
-          <td>${m.place}</td>
-          <td>${m.startDate}</td>
-          <td>${m.paidAmount}</td>
-          <td><button onclick="editMember(${i})">Edit</button></td>
-          <td><button onclick="exportPDF(${i})">PDF</button></td>
-        </tr>`;
-      });
+    function saveMembers(members) {
+        localStorage.setItem("members", JSON.stringify(members));
     }
 
     function addMember() {
-      const name = document.getElementById('name').value;
-      const address = document.getElementById('address').value;
-      const phone = document.getElementById('phone').value;
-      const place = document.getElementById('place').value;
-      const startDate = document.getElementById('startDate').value;
-      const paidAmount = document.getElementById('paidAmount').value;
-      const members = getMembers();
-      members.push({ name, address, phone, place, startDate, paidAmount });
-      saveMembers(members);
-      loadMembers();
+        const name = document.getElementById("name").value;
+        const phone = document.getElementById("phone").value;
+        const plan = document.getElementById("plan").value;
+        const paymentDate = document.getElementById("paymentDate").value;
+        const startingDate = document.getElementById("startingDate").value;
+        const paidAmount = document.getElementById("paidAmount").value;
+
+        if (!name || !phone || !plan || !paymentDate) return alert("Fill all required fields");
+
+        const members = getMembers();
+        const existing = members.find(m => m.phone === phone);
+
+        if (existing) {
+            Object.assign(existing, { name, plan, paymentDate, startingDate, paidAmount });
+        } else {
+            members.push({ name, phone, plan, paymentDate, startingDate, paidAmount });
+        }
+
+        saveMembers(members);
+        loadMembers();
     }
 
-    function editMember(i) {
-      const members = getMembers();
-      const m = members[i];
-      document.getElementById('name').value = m.name;
-      document.getElementById('address').value = m.address;
-      document.getElementById('phone').value = m.phone;
-      document.getElementById('place').value = m.place;
-      document.getElementById('startDate').value = m.startDate;
-      document.getElementById('paidAmount').value = m.paidAmount;
-      members.splice(i, 1);
-      saveMembers(members);
-      loadMembers();
+    function loadMembers() {
+        const members = getMembers();
+        const div = document.getElementById("members");
+        div.innerHTML = "";
+        members.forEach((m, i) => {
+            div.innerHTML += `
+                <div class="member">
+                    <strong>${m.name}</strong><br>
+                    📞 ${m.phone}<br>
+                    💳 ${m.plan}<br>
+                    🗓️ Payment: ${m.paymentDate}<br>
+                    🚀 Start: ${m.startingDate || 'N/A'}<br>
+                    💰 Paid: ₹${m.paidAmount || 'N/A'}<br>
+                    <button onclick='fillForm(${i})'>Edit</button>
+                    <button onclick='exportPDF(${i})'>Export PDF</button>
+                </div>
+            `;
+        });
     }
 
-    function exportPDF(i) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const m = getMembers()[i];
-      doc.text(`Name: ${m.name}`, 10, 10);
-      doc.text(`Address: ${m.address}`, 10, 20);
-      doc.text(`Phone: ${m.phone}`, 10, 30);
-      doc.text(`Place: ${m.place}`, 10, 40);
-      doc.text(`Start Date: ${m.startDate}`, 10, 50);
-      doc.text(`Paid: ${m.paidAmount}`, 10, 60);
-      doc.save(`${m.name}-details.pdf`);
+    function fillForm(index) {
+        const m = getMembers()[index];
+        document.getElementById("name").value = m.name;
+        document.getElementById("phone").value = m.phone;
+        document.getElementById("plan").value = m.plan;
+        document.getElementById("paymentDate").value = m.paymentDate;
+        document.getElementById("startingDate").value = m.startingDate || "";
+        document.getElementById("paidAmount").value = m.paidAmount || "";
+    }
+
+    function exportPDF(index) {
+        const { jsPDF } = window.jspdf;
+        const m = getMembers()[index];
+        const doc = new jsPDF();
+        doc.setFontSize(16);
+        doc.text(`Member Details`, 10, 10);
+        doc.setFontSize(12);
+        doc.text(`Name: ${m.name}`, 10, 20);
+        doc.text(`Phone: ${m.phone}`, 10, 30);
+        doc.text(`Plan: ${m.plan}`, 10, 40);
+        doc.text(`Payment Date: ${m.paymentDate}`, 10, 50);
+        doc.text(`Starting Date: ${m.startingDate || 'N/A'}`, 10, 60);
+        doc.text(`Paid Amount: ₹${m.paidAmount || 'N/A'}`, 10, 70);
+        doc.save(`${m.name}_${m.phone}.pdf`);
     }
 
     function exportAllPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const members = getMembers();
-      members.forEach((m, i) => {
-        doc.text(`${i+1}) Name: ${m.name}, Address: ${m.address}, Phone: ${m.phone}, Place: ${m.place}, Start Date: ${m.startDate}, Paid: ${m.paidAmount}`, 10, 10 + (i * 10));
-      });
-      doc.save('AllMembers.pdf');
+        const { jsPDF } = window.jspdf;
+        const members = getMembers();
+        const doc = new jsPDF();
+        let y = 10;
+        doc.setFontSize(14);
+        doc.text(`All Members`, 10, y);
+        y += 10;
+
+        members.forEach((m, idx) => {
+            if (y > 270) {
+                doc.addPage();
+                y = 10;
+            }
+            doc.setFontSize(12);
+            doc.text(`${idx + 1}. Name: ${m.name}, Phone: ${m.phone}, Plan: ${m.plan}, Payment: ${m.paymentDate}, Start: ${m.startingDate || 'N/A'}, Paid: ₹${m.paidAmount || 'N/A'}`, 10, y);
+            y += 10;
+        });
+
+        doc.save("All_Members.pdf");
     }
-  </script>
+</script>
 </body>
 </html>

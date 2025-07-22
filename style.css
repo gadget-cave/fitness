@@ -1,51 +1,37 @@
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f1f1f1;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f2f2f2;
   margin: 0;
-  padding: 0;
+  padding: 20px;
 }
 
 .container {
-  max-width: 600px;
-  margin: 40px auto;
-  background-color: #fff;
+  max-width: 900px;
+  margin: auto;
+  background: white;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0,0,0,0.1);
-}
-
-.hidden {
-  display: none;
-}
-
-h2, h3 {
-  text-align: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
 input, button {
   display: block;
   width: 100%;
-  margin: 12px 0;
   padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  margin-bottom: 10px;
 }
 
 button {
-  background-color: #4CAF50;
+  background-color: #007bff;
+  border: none;
   color: white;
   font-weight: bold;
   cursor: pointer;
+  border-radius: 6px;
 }
 
 button:hover {
-  background-color: #45a049;
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background-color: #0056b3;
 }
 
 table {
@@ -55,12 +41,7 @@ table {
 }
 
 th, td {
-  padding: 12px;
+  padding: 10px;
+  text-align: left;
   border: 1px solid #ccc;
-  text-align: center;
-}
-
-td .expired {
-  color: red;
-  font-weight: bold;
 }

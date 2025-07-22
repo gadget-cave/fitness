@@ -3,39 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gym Members Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Gym Fee Tracker</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>🏋️‍♂️ Gym Members Tracker</h1>
-    <form id="memberForm">
-      <input type="text" id="name" placeholder="Name" required />
-      <input type="text" id="phone" placeholder="Phone (10 digits)" required />
-      <input type="number" id="paidAmount" placeholder="Paid Amount (e.g. 1500)" required />
-      <input type="date" id="startDate" required />
-      <button type="submit">Add Member</button>
-    </form>
+  <h1>🏋️ Gym Member Fee Tracker</h1>
 
-    <h2>Members List</h2>
-    <table id="membersTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Phone</th>
-          <th>Paid</th>
-          <th>Start Date</th>
-          <th>Expiry</th>
-          <th>Status</th>
-          <th>WhatsApp</th>
-          <th>Edit</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div id="totalAmount"></div>
+  <form id="memberForm">
+    <input type="text" id="name" placeholder="Member Name" required />
+    <input type="tel" id="phone" placeholder="Phone (10 digits)" required />
+    <input type="number" id="paidAmount" placeholder="Paid Amount ₹" required />
+    <input type="date" id="startDate" required />
+    <button type="submit">Add Member</button>
+  </form>
+
+  <div class="actions">
+    <button onclick="exportAllToPDF()">📄 Export All as PDF</button>
   </div>
 
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Amount</th>
+        <th>Start Date</th>
+        <th>Valid Till</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="memberTable"></tbody>
+  </table>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

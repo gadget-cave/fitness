@@ -1,4 +1,3 @@
-// Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
   authDomain: "gym-fees-5dbcf.firebaseapp.com",
@@ -11,13 +10,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Form and Table Elements
 const memberForm = document.getElementById('memberForm');
 const memberList = document.getElementById('memberList');
 const exportBtn = document.getElementById('exportBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
-// Add Member
+// Add member
 memberForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -30,11 +28,6 @@ memberForm.addEventListener('submit', async (e) => {
   const endDate = new Date();
   endDate.setDate(startDate.getDate() + days);
 
-  if (!name || !phone || isNaN(fee) || isNaN(days)) {
-    alert("Please fill all fields correctly.");
-    return;
-  }
-
   await db.collection("members").add({
     name,
     phone,
@@ -44,83 +37,72 @@ memberForm.addEventListener('submit', async (e) => {
   });
 
   memberForm.reset();
-  alert("Member added successfully!");
   fetchMembers();
 });
 
-// Fetch Members and Populate Table
+// Fetch members
 async function fetchMembers() {
   memberList.innerHTML = "";
   const snapshot = await db.collection("members").get();
 
   snapshot.forEach(doc => {
     const data = doc.data();
-    const row = document.createElement("tr");
-
     const start = new Date(data.startDate);
     const end = new Date(data.endDate);
     const today = new Date();
+    const status = end < today ? "Expired" : "Active";
+    const color = end < today ? "red" : "green";
 
-    const isExpired = end < today;
-    const status = isExpired ? "Expired" : "Active";
-    const statusColor = isExpired ? "red" : "green";
-
+    const row = document.createElement("tr");
     row.innerHTML = `
       <td>${data.name}</td>
       <td>${data.phone}</td>
       <td>₹${data.fee}</td>
       <td>${start.toLocaleDateString()}</td>
       <td>${end.toLocaleDateString()}</td>
-      <td style="color: ${statusColor}; font-weight: bold;">${status}</td>
-      <td><button onclick="deleteMember('${doc.id}')">Delete</button></td>
+      <td style="color: ${color}; font-weight: bold;">${status}</td>
+      <td><button class="delete-btn" onclick="deleteMember('${doc.id}')">Delete</button></td>
     `;
-
     memberList.appendChild(row);
   });
 }
 
-// Delete Member
+// Delete member
 async function deleteMember(id) {
-  if (confirm("Are you sure you want to delete this member?")) {
+  if (confirm("Are you sure?")) {
     await db.collection("members").doc(id).delete();
-    alert("Member deleted.");
     fetchMembers();
   }
 }
 
-// Export All to PDF
-exportBtn.addEventListener('click', () => {
-  import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
-    .then(jsPDF => {
-      const { jsPDF: JSPDF } = jsPDF;
-      const doc = new JSPDF();
+// Export to PDF
+exportBtn.addEventListener("click", () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-      doc.text("Gym Member Report", 10, 10);
-      const rows = [];
-      const headers = ["Name", "Phone", "Fee", "Start", "End", "Status"];
+  doc.text("Gym Members", 10, 10);
+  const rows = [];
+  const table = document.querySelectorAll("#membersTable tbody tr");
 
-      const table = document.querySelectorAll("#membersTable tbody tr");
-      table.forEach(tr => {
-        const cols = tr.querySelectorAll("td");
-        const row = Array.from(cols).slice(0, 6).map(td => td.textContent);
-        rows.push(row);
-      });
+  table.forEach(tr => {
+    const cols = tr.querySelectorAll("td");
+    const row = Array.from(cols).slice(0, 6).map(td => td.textContent);
+    rows.push(row);
+  });
 
-      doc.autoTable({
-        head: [headers],
-        body: rows,
-        startY: 20
-      });
+  doc.autoTable({
+    head: [["Name", "Phone", "Fee", "Start", "End", "Status"]],
+    body: rows,
+    startY: 20
+  });
 
-      doc.save("Gym_Members.pdf");
-    });
+  doc.save("gym_members.pdf");
 });
 
-// Logout Function (Dummy - Can extend to real auth)
-logoutBtn.addEventListener('click', () => {
-  alert("Logged out successfully!");
-  window.location.reload();
+// Logout
+logoutBtn.addEventListener("click", () => {
+  alert("Logged out!");
+  location.reload();
 });
 
-// Initial fetch
 fetchMembers();

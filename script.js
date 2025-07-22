@@ -1,118 +1,60 @@
-const adminPhone = "9744340057";
-const adminPass = "hisham@123";
+// Paste your Firebase config here ↓↓↓↓↓↓
+const firebaseConfig = {
+  apiKey: "AIzaSyDf7i6GDLSTKNI8UDPTw3-cLY5XkozSdx8",
+  authDomain: "gym-fee-tracker-ecc75.firebaseapp.com",
+  projectId: "gym-fee-tracker-ecc75",
+  storageBucket: "gym-fee-tracker-ecc75.firebasestorage.app",
+  messagingSenderId: "1051044340053",
+  appId: "1:1051044340053:web:7abd5a48e2f5428d8a8fdc",
+  measurementId: "G-RTX4JWF8EJ"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
 
 function login() {
-  const phone = document.getElementById("loginPhone").value.trim();
-  const pass = document.getElementById("loginPassword").value.trim();
-  if (phone === adminPhone && pass === adminPass) {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("mainContent").style.display = "block";
-    loadMembers();
-  } else {
-    document.getElementById("loginError").textContent = "How are you?";
-    document.getElementById("mainContent").style.display = "none";
-  }
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(() => {
+      document.getElementById("auth-section").style.display = "none";
+      document.getElementById("app-section").style.display = "block";
+      loadMembers();
+    })
+    .catch(err => alert("Login Failed: " + err.message));
+}
+
+function logout() {
+  auth.signOut().then(() => {
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("app-section").style.display = "none";
+  });
 }
 
 function addMember() {
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const joinDate = document.getElementById("joinDate").value;
-  const duration = parseInt(document.getElementById("duration").value);
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const fee = document.getElementById("fee").value;
 
-  if (!name || !phone || !joinDate || !duration) return alert("Please fill all fields");
+  const newRef = db.ref("members").push();
+  newRef.set({ name, phone, fee });
 
-  const expiry = new Date(joinDate);
-  expiry.setDate(expiry.getDate() + duration);
-
-  const member = {
-    id: Date.now(),
-    name,
-    phone,
-    joinDate,
-    duration,
-    expiry: expiry.toISOString().split("T")[0]
-  };
-
-  const members = getMembers();
-  members.push(member);
-  localStorage.setItem("gymMembers", JSON.stringify(members));
-
-  loadMembers();
-  clearForm();
-}
-
-function clearForm() {
   document.getElementById("name").value = "";
   document.getElementById("phone").value = "";
-  document.getElementById("joinDate").value = "";
-  document.getElementById("duration").value = "";
-}
-
-function getMembers() {
-  return JSON.parse(localStorage.getItem("gymMembers")) || [];
-}
-
-function deleteMember(id) {
-  if (!confirm("Are you sure you want to delete this member?")) return;
-  const members = getMembers().filter(m => m.id !== id);
-  localStorage.setItem("gymMembers", JSON.stringify(members));
-  loadMembers();
-}
-
-function exportMemberToPDF(member) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.text(`Member Details`, 10, 10);
-  doc.text(`Name: ${member.name}`, 10, 20);
-  doc.text(`Phone: ${member.phone}`, 10, 30);
-  doc.text(`Join Date: ${member.joinDate}`, 10, 40);
-  doc.text(`Expiry: ${member.expiry}`, 10, 50);
-  doc.save(`${member.name}_MemberDetails.pdf`);
-}
-
-function exportAllToPDF() {
-  const members = getMembers();
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFontSize(12);
-  doc.text("Gym Members Report", 10, 10);
-
-  let y = 20;
-  members.forEach((m, index) => {
-    doc.text(`Name: ${m.name}, Phone: ${m.phone}, Expiry: ${m.expiry}`, 10, y);
-    y += 10;
-    if (y > 270) {
-      doc.addPage();
-      y = 10;
-    }
-  });
-
-  doc.save("All_Members.pdf");
+  document.getElementById("fee").value = "";
 }
 
 function loadMembers() {
-  const members = getMembers();
-  const tbody = document.getElementById("memberBody");
-  tbody.innerHTML = "";
+  db.ref("members").on("value", (snapshot) => {
+    const members = snapshot.val();
+    const memberList = document.getElementById("memberList");
+    memberList.innerHTML = "";
 
-  members.forEach(member => {
-    const tr = document.createElement("tr");
-    const now = new Date().toISOString().split("T")[0];
-    const expired = now > member.expiry;
-
-    tr.className = expired ? "expired" : "";
-    tr.innerHTML = `
-      <td>${member.name}</td>
-      <td>${member.phone}</td>
-      <td>${member.joinDate}</td>
-      <td>${member.expiry}</td>
-      <td>${expired ? "Expired" : "Active"}</td>
-      <td>
-        <button onclick="exportMemberToPDF(${JSON.stringify(member).replace(/"/g, '&quot;')})">Export</button>
-        <button onclick="deleteMember(${member.id})">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+    for (let id in members) {
+      const { name, phone, fee } = members[id];
+      const row = `<tr><td>${name}</td><td>${phone}</td><td>${fee}</td></tr>`;
+      memberList.innerHTML += row;
+    }
   });
 }

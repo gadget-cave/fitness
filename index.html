@@ -1,121 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Membership Fee Tracker</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Members Fee Tracker</title>
   <style>
-    body {
-      padding: 20px;
-      background-color: #f0f2f5;
-    }
-    .expired {
-      background-color: #ffd6d6 !important;
-    }
-    .table-wrapper {
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    .whatsapp-btn {
-      color: white;
-      background-color: #25D366;
-      border: none;
-      padding: 4px 10px;
-      border-radius: 5px;
-    }
+    body { font-family: Arial, sans-serif; background: #f1f1f1; padding: 20px; }
+    h1 { text-align: center; }
+    form, table { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+    input { padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 5px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+    th { background: #333; color: white; }
+    tr.expired { background: #ffe6e6; color: red; }
+    .whatsapp-btn { background: green; color: white; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
+    .total-fees { font-size: 1.2em; font-weight: bold; text-align: right; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2 class="mb-4">Membership Fee Tracker</h2>
+  <h1>🏋️‍♂️ Gym Members Fee Tracker</h1>
+  <form id="memberForm">
+    <input type="text" id="name" placeholder="Member Name" required />
+    <input type="text" id="phone" placeholder="Phone Number (10 digits)" required />
+    <input type="number" id="paidAmount" placeholder="Paid Amount (₹)" required min="500" step="500" />
+    <button type="submit">Add Member</button>
+  </form>
 
-    <div class="row g-3 align-items-end">
-      <div class="col-md-3">
-        <input type="text" id="name" class="form-control" placeholder="Member Name">
-      </div>
-      <div class="col-md-3">
-        <input type="text" id="mobile" class="form-control" placeholder="Mobile Number">
-      </div>
-      <div class="col-md-3">
-        <input type="number" id="amount" class="form-control" placeholder="Paid Amount (₹)">
-      </div>
-      <div class="col-md-3">
-        <button class="btn btn-primary" onclick="addMember()">Add Member</button>
-      </div>
-    </div>
-
-    <hr class="my-4">
-
-    <input type="text" class="form-control mb-3" id="search" placeholder="Search by name or number" onkeyup="searchMembers()">
-
-    <div class="table-wrapper">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Mobile</th>
-            <th>Validity</th>
-            <th>WhatsApp Reminder</th>
-          </tr>
-        </thead>
-        <tbody id="memberTable">
-          <!-- Dynamic content here -->
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <table id="memberTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Paid Amount</th>
+        <th>Start Date</th>
+        <th>Expiry Date</th>
+        <th>Status</th>
+        <th>WhatsApp Reminder</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div class="total-fees">Total Fees Collected: ₹<span id="totalFees">0</span></div>
 
   <script>
-    const memberTable = document.getElementById("memberTable");
+    const form = document.getElementById("memberForm");
+    const tableBody = document.querySelector("#memberTable tbody");
+    const totalFeesEl = document.getElementById("totalFees");
 
-    function addMember() {
-      const name = document.getElementById("name").value.trim();
-      const mobile = document.getElementById("mobile").value.trim();
-      const amount = parseInt(document.getElementById("amount").value.trim()) || 0;
+    let members = JSON.parse(localStorage.getItem("gym_members") || "[]");
 
-      if (!name || !mobile || amount < 500) {
-        alert("Please enter valid name, mobile, and amount (min ₹500)");
-        return;
-      }
-
-      const months = Math.floor(amount / 500);
-      const days = months * 30;
+    const renderTable = () => {
+      tableBody.innerHTML = "";
+      let total = 0;
       const today = new Date();
-      const validityDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+      members.forEach(member => {
+        const start = new Date(member.startDate);
+        const expiry = new Date(member.expiryDate);
+        const isExpired = today > expiry;
+        total += member.paidAmount;
+        const row = document.createElement("tr");
+        if (isExpired) row.classList.add("expired");
 
-      const row = document.createElement("tr");
-      const now = new Date();
-      if (validityDate < now) row.classList.add("expired");
+        row.innerHTML = `
+          <td>${member.name}</td>
+          <td>${member.phone}</td>
+          <td>₹${member.paidAmount}</td>
+          <td>${member.startDate}</td>
+          <td>${member.expiryDate}</td>
+          <td>${isExpired ? "Expired ❌" : "Active ✅"}</td>
+          <td><a class="whatsapp-btn" href="https://wa.me/91${member.phone}?text=Hi%20${member.name},%20your%20gym%20membership%20validity%20expired%20on%20${member.expiryDate}.%20Please%20pay%20your%20fees%20(₹500%20per%20month)%20to%20renew.%20Thank%20you!" target="_blank">Remind</a></td>
+        `;
+        tableBody.appendChild(row);
+      });
+      totalFeesEl.textContent = total;
+    };
 
-      const msg = `Hi ${name}, your membership is valid till ${validityDate.toLocaleDateString()}. Please renew if expired. Fees: ₹500.`;
-      const waLink = `https://wa.me/91${mobile}?text=${encodeURIComponent(msg)}`;
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const paidAmount = parseInt(document.getElementById("paidAmount").value);
+      const days = (paidAmount / 500) * 30;
+      const startDate = new Date();
+      const expiryDate = new Date(startDate.getTime() + days * 24 * 60 * 60 * 1000);
 
-      row.innerHTML = `
-        <td>${name}</td>
-        <td>${mobile}</td>
-        <td>${validityDate.toLocaleDateString()}</td>
-        <td><a href="${waLink}" target="_blank" class="whatsapp-btn">Remind</a></td>
-      `;
+      const member = {
+        name,
+        phone,
+        paidAmount,
+        startDate: startDate.toISOString().split('T')[0],
+        expiryDate: expiryDate.toISOString().split('T')[0]
+      };
 
-      memberTable.appendChild(row);
+      members.push(member);
+      localStorage.setItem("gym_members", JSON.stringify(members));
+      form.reset();
+      renderTable();
+    };
 
-      // Clear fields
-      document.getElementById("name").value = "";
-      document.getElementById("mobile").value = "";
-      document.getElementById("amount").value = "";
-    }
-
-    function searchMembers() {
-      const searchTerm = document.getElementById("search").value.toLowerCase();
-      const rows = memberTable.getElementsByTagName("tr");
-      for (let row of rows) {
-        const cells = row.getElementsByTagName("td");
-        const name = cells[0]?.innerText.toLowerCase();
-        const mobile = cells[1]?.innerText;
-        row.style.display = name.includes(searchTerm) || mobile.includes(searchTerm) ? "" : "none";
-      }
-    }
+    renderTable();
   </script>
 </body>
 </html>

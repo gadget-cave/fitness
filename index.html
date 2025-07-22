@@ -1,35 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Member Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Member Manager</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    .login-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px #ccc; }
-    input { display: block; margin: 10px 0; padding: 10px; width: 100%; }
-    button { padding: 10px 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eeebff;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    .expired {
+      background-color: #ffe6e6 !important;
+    }
+    .actions button {
+      margin: 2px;
+    }
+    .highlight {
+      background-color: #fff0f0;
+    }
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>Admin Login</h2>
-    <input type="text" id="loginNumber" placeholder="Phone Number">
-    <input type="password" id="loginPassword" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p id="loginError" style="color:red;"></p>
+  <div class="container">
+    <div id="loginSection">
+      <h1>Login</h1>
+      <input type="text" id="mobile" placeholder="Mobile Number" />
+      <input type="password" id="password" placeholder="Password" />
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div id="homeSection" style="display: none">
+      <h1>Add Member</h1>
+      <input type="text" id="name" placeholder="Name" />
+      <input type="text" id="phone" placeholder="Mobile Number" />
+      <input type="date" id="start" />
+      <input type="number" id="paid" placeholder="Paid Amount" />
+      <button onclick="addMember()">Add Member</button>
+      <input type="text" id="search" placeholder="Search by name or number" oninput="loadMembers()" />
+      <button onclick="exportAllPDF()">Export All to PDF</button>
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Mobile</th><th>Start</th><th>Paid</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="memberTable"></tbody>
+      </table>
+    </div>
+
+    <div id="unauth" style="display: none">
+      <h1>How are you?</h1>
+    </div>
   </div>
-  <script>
-    function login() {
-      const number = document.getElementById("loginNumber").value;
-      const pass = document.getElementById("loginPassword").value;
-      if (number === "917994160120" && pass === "hisham@123") {
-        localStorage.setItem("loggedIn", "yes");
-        window.location.href = "home.html";
-      } else {
-        document.getElementById("loginError").innerText = "How are you!";
-      }
-    }
-  </script>
+
+<script>
+const ADMIN_MOBILE = "917994160120";
+const ADMIN_PASS = "hisham@123";
+const STORAGE_KEY = "gym_members";
+
+function login() {
+  const m = document.getElementById("mobile").value;
+  const p = document.getElementById("password").value;
+  if (m === ADMIN_MOBILE && p === ADMIN_PASS) {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("homeSection").style.display = "block";
+    loadMembers();
+  } else {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("unauth").style.display = "block";
+  }
+}
+
+function getMembers() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+}
+
+function saveMembers(m) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(m));
+}
+
+function addMember() {
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const start = document.getElementById("start").value;
+  const paid = document.getElementById("paid").value;
+
+  if (!name || !phone || !start || !paid) return alert("Fill all fields");
+
+  const members = getMembers();
+  const idx = members.findIndex(m => m.phone === phone);
+  const newMember = { name, phone, start, paid, timestamp: Date.now() };
+
+  if (idx !== -1) members[idx] = newMember;
+  else members.push(newMember);
+
+  saveMembers(members);
+  loadMembers();
+}
+
+function loadMembers() {
+  const search = document.getElementById("search").value.toLowerCase();
+  const table = document.getElementById("memberTable");
+  table.innerHTML = "";
+
+  getMembers()
+    .filter(m => m.name.toLowerCase().includes(search) || m.phone.includes(search))
+    .forEach((m, i) => {
+      const expiry = getExpiryDate(m.start, m.paid);
+      const isExpired = new Date() > new Date(expiry);
+      const row = document.createElement("tr");
+      if (isExpired) row.classList.add("expired");
+      row.innerHTML = `
+        <td>${m.name}</td>
+        <td>${m.phone}</td>
+        <td>${m.start}</td>
+        <td>${m.paid}</td>
+        <td class="actions">
+          <button onclick="sendWhatsApp('${m.phone}', '${m.name}', '${expiry}')">WhatsApp</button>
+          <button onclick="editMember(${i})">Edit</button>
+          <button onclick="delMember(${i})">Delete</button>
+          <button onclick="exportPDF(${i})">Export</button>
+        </td>
+      `;
+      table.appendChild(row);
+    });
+}
+
+function getExpiryDate(start, paid) {
+  const months = Math.floor(+paid / 500);
+  const d = new Date(start);
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().slice(0, 10);
+}
+
+function editMember(i) {
+  const m = getMembers()[i];
+  document.getElementById("name").value = m.name;
+  document.getElementById("phone").value = m.phone;
+  document.getElementById("start").value = m.start;
+  document.getElementById("paid").value = m.paid;
+}
+
+function delMember(i) {
+  if (confirm("Are you sure to delete?")) {
+    const m = getMembers();
+    m.splice(i, 1);
+    saveMembers(m);
+    loadMembers();
+  }
+}
+
+function sendWhatsApp(phone, name, expiry) {
+  const msg = `Hi ${name}, your membership expires on ${expiry}. Please renew.`;
+  const url = `https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`;
+  window.open(url);
+}
+
+function exportPDF(i) {
+  const { jsPDF } = window.jspdf;
+  const m = getMembers()[i];
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text("Member Details", 10, 10);
+  doc.setFontSize(12);
+  doc.text(`Name: ${m.name}`, 10, 20);
+  doc.text(`Phone: ${m.phone}`, 10, 30);
+  doc.text(`Start: ${m.start}`, 10, 40);
+  doc.text(`Paid: ₹${m.paid}`, 10, 50);
+  doc.save(`${m.name}_${m.phone}.pdf`);
+}
+
+function exportAllPDF() {
+  const { jsPDF } = window.jspdf;
+  const members = getMembers();
+  const doc = new jsPDF();
+  let y = 10;
+  doc.setFontSize(14);
+  doc.text("All Members", 10, y);
+  y += 10;
+  members.forEach((m, i) => {
+    if (y > 270) { doc.addPage(); y = 10; }
+    doc.setFontSize(12);
+    doc.text(`${i + 1}. ${m.name}, ${m.phone}, Start: ${m.start}, Paid: ₹${m.paid}`, 10, y);
+    y += 10;
+  });
+  doc.save("All_Members.pdf");
+}
+</script>
 </body>
 </html>

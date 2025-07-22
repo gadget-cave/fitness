@@ -1,0 +1,45 @@
+<!-- add.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Member</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2>Add New Member</h2>
+  <form id="memberForm">
+    <label>Name:</label>
+    <input type="text" id="name" required />
+
+    <label>Mobile:</label>
+    <input type="tel" id="phone" pattern="[0-9]{10}" required />
+
+    <label>Join Date:</label>
+    <input type="date" id="joinDate" required />
+
+    <button type="submit">Add Member</button>
+    <a href="index.html">⬅️ Back to Dashboard</a>
+  </form>
+
+  <script>
+    document.getElementById("memberForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      let name = document.getElementById("name").value;
+      let phone = document.getElementById("phone").value;
+      let joinDate = document.getElementById("joinDate").value;
+
+      let members = JSON.parse(localStorage.getItem("members")) || [];
+
+      members.push({ name, phone, joinDate });
+
+      localStorage.setItem("members", JSON.stringify(members));
+
+      alert("Member added successfully!");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

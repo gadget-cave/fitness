@@ -1,4 +1,4 @@
-// Firebase Config
+// Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
   authDomain: "gym-fees-5dbcf.firebaseapp.com",
@@ -8,93 +8,119 @@ const firebaseConfig = {
   appId: "1:423386853721:web:fafd195e95e6b1cb091c48"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Add member
-document.getElementById("memberForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const name = nameInput.value.trim();
-  const phone = phoneInput.value.trim();
-  const fee = feeInput.value.trim();
-  const days = parseInt(daysInput.value.trim());
+// Form and Table Elements
+const memberForm = document.getElementById('memberForm');
+const memberList = document.getElementById('memberList');
+const exportBtn = document.getElementById('exportBtn');
+const logoutBtn = document.getElementById('logoutBtn');
 
-  const start = new Date();
-  const end = new Date(start);
-  end.setDate(end.getDate() + days);
+// Add Member
+memberForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const fee = parseFloat(document.getElementById('fee').value.trim());
+  const days = parseInt(document.getElementById('days').value.trim());
+
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setDate(startDate.getDate() + days);
+
+  if (!name || !phone || isNaN(fee) || isNaN(days)) {
+    alert("Please fill all fields correctly.");
+    return;
+  }
 
   await db.collection("members").add({
-    name, phone, fee,
-    start: firebase.firestore.Timestamp.fromDate(start),
-    end: firebase.firestore.Timestamp.fromDate(end),
+    name,
+    phone,
+    fee,
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString()
   });
 
   memberForm.reset();
-  loadMembers();
+  alert("Member added successfully!");
+  fetchMembers();
 });
 
-// Load members
-async function loadMembers() {
-  const snapshot = await db.collection("members").orderBy("start", "desc").get();
+// Fetch Members and Populate Table
+async function fetchMembers() {
   memberList.innerHTML = "";
-
-  const now = new Date();
+  const snapshot = await db.collection("members").get();
 
   snapshot.forEach(doc => {
     const data = doc.data();
-    const start = data.start.toDate();
-    const end = data.end.toDate();
+    const row = document.createElement("tr");
 
-    const isActive = end > now;
-    const statusClass = isActive ? "status-active" : "status-expired";
+    const start = new Date(data.startDate);
+    const end = new Date(data.endDate);
+    const today = new Date();
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const isExpired = end < today;
+    const status = isExpired ? "Expired" : "Active";
+    const statusColor = isExpired ? "red" : "green";
+
+    row.innerHTML = `
       <td>${data.name}</td>
       <td>${data.phone}</td>
-      <td>${data.fee}</td>
+      <td>₹${data.fee}</td>
       <td>${start.toLocaleDateString()}</td>
       <td>${end.toLocaleDateString()}</td>
-      <td class="${statusClass}">${isActive ? "Active" : "Expired"}</td>
+      <td style="color: ${statusColor}; font-weight: bold;">${status}</td>
       <td><button onclick="deleteMember('${doc.id}')">Delete</button></td>
     `;
-    memberList.appendChild(tr);
+
+    memberList.appendChild(row);
   });
 }
 
-// Delete member
+// Delete Member
 async function deleteMember(id) {
-  await db.collection("members").doc(id).delete();
-  loadMembers();
+  if (confirm("Are you sure you want to delete this member?")) {
+    await db.collection("members").doc(id).delete();
+    alert("Member deleted.");
+    fetchMembers();
+  }
 }
 
-// Export to PDF
-document.getElementById("exportBtn").addEventListener("click", async () => {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const snapshot = await db.collection("members").get();
+// Export All to PDF
+exportBtn.addEventListener('click', () => {
+  import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+    .then(jsPDF => {
+      const { jsPDF: JSPDF } = jsPDF;
+      const doc = new JSPDF();
 
-  doc.text("Gym Members Report", 20, 10);
-  let y = 20;
+      doc.text("Gym Member Report", 10, 10);
+      const rows = [];
+      const headers = ["Name", "Phone", "Fee", "Start", "End", "Status"];
 
-  snapshot.forEach((docSnap, i) => {
-    const data = docSnap.data();
-    const start = data.start.toDate().toLocaleDateString();
-    const end = data.end.toDate().toLocaleDateString();
-    const line = `${i + 1}. ${data.name} - ${data.phone} - ₹${data.fee} - ${start} to ${end}`;
-    doc.text(line, 10, y);
-    y += 10;
-  });
+      const table = document.querySelectorAll("#membersTable tbody tr");
+      table.forEach(tr => {
+        const cols = tr.querySelectorAll("td");
+        const row = Array.from(cols).slice(0, 6).map(td => td.textContent);
+        rows.push(row);
+      });
 
-  doc.save("gym_members.pdf");
+      doc.autoTable({
+        head: [headers],
+        body: rows,
+        startY: 20
+      });
+
+      doc.save("Gym_Members.pdf");
+    });
 });
 
-// Dummy logout
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  alert("Logged out!");
-  // You can redirect to login.html if using login system
+// Logout Function (Dummy - Can extend to real auth)
+logoutBtn.addEventListener('click', () => {
+  alert("Logged out successfully!");
+  window.location.reload();
 });
 
-// Load members on start
-loadMembers();
+// Initial fetch
+fetchMembers();

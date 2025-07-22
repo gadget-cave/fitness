@@ -1,54 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Member Dashboard</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="container" id="loginContainer">
-    <h2>Admin Login</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p id="loginStatus"></p>
+  <div class="container">
+    <div id="login-container">
+      <h2>Login</h2>
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <p id="login-message"></p>
+    </div>
+
+    <div id="dashboard" style="display: none;">
+      <div class="header">
+        <h2>Welcome, <span id="user-email"></span></h2>
+        <button onclick="logout()">Logout</button>
+        <button onclick="exportToPDF()">Export to PDF</button>
+      </div>
+
+      <div class="add-member">
+        <h3>Add New Member</h3>
+        <input type="text" id="member-name" placeholder="Name" />
+        <input type="text" id="member-phone" placeholder="Phone" />
+        <input type="text" id="member-status" placeholder="Status" />
+        <input type="text" id="member-whatsapp" placeholder="WhatsApp URL" />
+        <input type="text" id="member-fee" placeholder="Fees Expired" />
+        <input type="date" id="member-expiry" placeholder="Expiry Date" />
+        <button onclick="addMember()">Add Member</button>
+      </div>
+
+      <div class="member-list">
+        <h3>Member List</h3>
+        <table id="members-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>WhatsApp</th>
+              <th>Fees</th>
+              <th>Expiry</th>
+            </tr>
+          </thead>
+          <tbody id="members-body">
+            <!-- Members will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <div class="container hidden" id="adminContainer">
-    <div class="topbar">
-      <h2>Welcome Admin</h2>
-      <button onclick="logout()">Logout</button>
-    </div>
-
-    <div class="form-section">
-      <h3>Add Member</h3>
-      <input type="text" id="memberName" placeholder="Member Name">
-      <input type="text" id="phone" placeholder="Phone Number">
-      <input type="text" id="fees" placeholder="Fees">
-      <input type="date" id="expiryDate">
-      <button onclick="addMember()">Add Member</button>
-    </div>
-
-    <div class="table-section">
-      <h3>All Members</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Fees</th>
-            <th>Expiry</th>
-            <th>Status</th>
-            <th>Chat</th>
-          </tr>
-        </thead>
-        <tbody id="membersTable"></tbody>
-      </table>
-    </div>
-  </div>
-
+  <!-- Firebase & App Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore-compat.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -8,103 +8,92 @@ const firebaseConfig = {
   appId: "1:423386853721:web:fafd195e95e6b1cb091c48"
 };
 
-// Initialize Firebase
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// DOM elements
-const loginSection = document.getElementById("login-section");
-const mainSection = document.getElementById("main-section");
-const loginForm = document.getElementById("login-form");
-const logoutBtn = document.getElementById("logout-btn");
-const addMemberForm = document.getElementById("add-member-form");
-const membersList = document.getElementById("members-list");
-
-// Auth state listener
-auth.onAuthStateChanged(user => {
-  if (user) {
-    showMainUI();
-    loadMembers();
-  } else {
-    showLoginUI();
-  }
-});
-
-// Show login UI
-function showLoginUI() {
-  loginSection.style.display = "block";
-  mainSection.style.display = "none";
-}
-
-// Show main UI
-function showMainUI() {
-  loginSection.style.display = "none";
-  mainSection.style.display = "block";
-}
-
-// Login
-loginForm.addEventListener("submit", e => {
-  e.preventDefault();
-  const email = loginForm.email.value;
-  const password = loginForm.password.value;
-
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      loginForm.reset();
-    })
-    .catch(error => {
-      alert("Login failed: " + error.message);
-    });
-});
-
 // Logout
-logoutBtn.addEventListener("click", () => {
+document.getElementById("logoutBtn").addEventListener("click", () => {
   auth.signOut().then(() => {
-    alert("Logged out successfully.");
+    window.location.href = "login.html";
   });
 });
 
-// Add Member
-addMemberForm.addEventListener("submit", e => {
-  e.preventDefault();
-
-  const name = addMemberForm.name.value;
-  const phone = addMemberForm.phone.value;
-  const plan = addMemberForm.plan.value;
-
-  if (name && phone && plan) {
-    db.collection("members").add({
-      name,
-      phone,
-      plan,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      addMemberForm.reset();
-      alert("Member added successfully!");
-    }).catch(error => {
-      alert("Error adding member: " + error.message);
-    });
+// Check if user is logged in
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    alert("Who are you?");
+    window.location.href = "login.html";
   } else {
-    alert("Please fill all fields.");
+    loadMembers();
   }
 });
 
-// Load Members
-function loadMembers() {
-  db.collection("members").orderBy("timestamp", "desc")
-    .onSnapshot(snapshot => {
-      membersList.innerHTML = "";
+// Add Member
+document.getElementById("memberForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const fee = document.getElementById("fee").value.trim();
+  const days = parseInt(document.getElementById("days").value);
 
-      snapshot.forEach(doc => {
-        const member = doc.data();
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <strong>${member.name}</strong><br>
-          📞 ${member.phone}<br>
-          🏋️ Plan: ${member.plan}<br><hr>
-        `;
-        membersList.appendChild(li);
-      });
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setDate(startDate.getDate() + days);
+
+  await db.collection("members").add({
+    name,
+    phone,
+    fee,
+    start: firebase.firestore.Timestamp.fromDate(startDate),
+    end: firebase.firestore.Timestamp.fromDate(endDate),
+  });
+
+  document.getElementById("memberForm").reset();
+});
+
+// Load members
+function loadMembers() {
+  db.collection("members").orderBy("end", "asc").onSnapshot(snapshot => {
+    const list = document.getElementById("memberList");
+    list.innerHTML = "";
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const tr = document.createElement("tr");
+
+      const start = data.start.toDate();
+      const end = data.end.toDate();
+      const today = new Date();
+      const isActive = end >= today;
+
+      tr.innerHTML = `
+        <td>${data.name}</td>
+        <td>${data.phone}</td>
+        <td>₹${data.fee}</td>
+        <td>${start.toLocaleDateString()}</td>
+        <td>${end.toLocaleDateString()}</td>
+        <td style="color:${isActive ? 'green' : 'red'}">${isActive ? 'Active' : 'Expired'}</td>
+        <td><button onclick="deleteMember('${doc.id}')">🗑️</button></td>
+      `;
+      list.appendChild(tr);
     });
+  });
 }
+
+// Delete member
+function deleteMember(id) {
+  if (confirm("Are you sure you want to delete this member?")) {
+    db.collection("members").doc(id).delete();
+  }
+}
+
+// Export to PDF
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.autoTable({ html: '#membersTable' });
+  doc.save("gym_members.pdf");
+});

@@ -1,50 +1,66 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f5f5f5;
+  background-color: #f1f1f1;
   margin: 0;
   padding: 0;
 }
-.login-container, .main-container {
-  max-width: 500px;
-  margin: 50px auto;
-  padding: 20px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.1);
 }
+
 .hidden {
   display: none;
 }
-input {
+
+h2, h3 {
+  text-align: center;
+}
+
+input, button {
   display: block;
   width: 100%;
-  margin: 10px 0;
+  margin: 12px 0;
   padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
+
 button {
-  padding: 10px;
-  margin: 5px 0;
-  width: 100%;
-  background: #007bff;
+  background-color: #4CAF50;
   color: white;
-  border: none;
-  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
 }
-.top-bar {
+
+button:hover {
+  background-color: #45a049;
+}
+
+.topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
 }
+
 th, td {
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 12px;
+  border: 1px solid #ccc;
   text-align: center;
 }
-tr.expired {
-  background: #ffdddd;
+
+td .expired {
+  color: red;
+  font-weight: bold;
 }

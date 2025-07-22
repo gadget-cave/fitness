@@ -1,126 +1,109 @@
-// Constants for admin login
-const ADMIN_NUMBER = "917994160120";
-const ADMIN_PASS = "hisham@123";
+const allowedNumber = "917994160120";
+const allowedPassword = "hisham@123";
 
-// State to hold member data
-let members = JSON.parse(localStorage.getItem("members") || "[]");
+function login() {
+  const number = document.getElementById("loginNumber").value.trim();
+  const pass = document.getElementById("loginPassword").value.trim();
 
-// DOM references
-const loginForm = document.getElementById("loginForm");
-const dashboard = document.getElementById("dashboard");
-const memberList = document.getElementById("memberList");
-const addMemberForm = document.getElementById("addMemberForm");
-const exportAllBtn = document.getElementById("exportAll");
-
-function showLoginScreen() {
-  loginForm.style.display = "block";
-  dashboard.style.display = "none";
-}
-
-function showDashboard() {
-  loginForm.style.display = "none";
-  dashboard.style.display = "block";
-  renderMemberList();
-}
-
-// Login handler
-loginForm.addEventListener("submit", function (e) {
-  e.preventDefault();
-  const number = document.getElementById("number").value;
-  const password = document.getElementById("password").value;
-
-  if (number === ADMIN_NUMBER && password === ADMIN_PASS) {
-    showDashboard();
+  if (number === allowedNumber && pass === allowedPassword) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("mainContainer").style.display = "block";
+    loadMembers();
   } else {
-    document.body.innerHTML = "<h2 style='text-align:center; margin-top:20%;'>How are you 😊</h2>";
+    document.getElementById("unauth").style.display = "block";
+    document.getElementById("loginBox").style.display = "none";
   }
-});
+}
 
-// Add member handler
-addMemberForm.addEventListener("submit", function (e) {
-  e.preventDefault();
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
-  const plan = document.getElementById("plan").value;
-  const fee = document.getElementById("fee").value;
-  const paid = document.getElementById("paid").value;
+function addMember() {
+  const name = document.getElementById("memberName").value.trim();
+  const number = document.getElementById("memberNumber").value.trim();
+  const plan = document.getElementById("memberPlan").value.trim();
+  const startDate = document.getElementById("startDate").value;
 
-  const newMember = {
-    id: Date.now(),
-    name,
-    phone,
-    plan,
-    fee,
-    paid,
-    date: new Date().toLocaleDateString()
-  };
+  if (!name || !number || !plan || !startDate) {
+    alert("Fill all fields");
+    return;
+  }
 
-  members.push(newMember);
+  const members = JSON.parse(localStorage.getItem("members") || "[]");
+  members.push({ name, number, plan, startDate });
   localStorage.setItem("members", JSON.stringify(members));
-  renderMemberList();
-  addMemberForm.reset();
-});
+  loadMembers();
 
-// Render members
-function renderMemberList() {
-  memberList.innerHTML = "";
-  members.forEach(member => {
-    const div = document.createElement("div");
-    div.className = "member-card";
-    div.innerHTML = `
-      <h3>${member.name}</h3>
-      <p><strong>Phone:</strong> ${member.phone}</p>
-      <p><strong>Plan:</strong> ${member.plan}</p>
-      <p><strong>Fee:</strong> ₹${member.fee}</p>
-      <p><strong>Paid:</strong> ₹${member.paid}</p>
-      <p><strong>Date:</strong> ${member.date}</p>
-      <button onclick="exportMemberPDF(${member.id})">Export PDF</button>
-      <button onclick="deleteMember(${member.id})">Delete</button>
-    `;
-    memberList.appendChild(div);
-  });
+  document.getElementById("memberName").value = "";
+  document.getElementById("memberNumber").value = "";
+  document.getElementById("memberPlan").value = "";
+  document.getElementById("startDate").value = "";
 }
 
-// Delete member
-function deleteMember(id) {
-  if (confirm("Are you sure to delete this member?")) {
-    members = members.filter(m => m.id !== id);
-    localStorage.setItem("members", JSON.stringify(members));
-    renderMemberList();
-  }
-}
+function loadMembers() {
+  const members = JSON.parse(localStorage.getItem("members") || "[]");
+  const list = document.getElementById("memberList");
+  list.innerHTML = "";
 
-// Export one member to PDF
-function exportMemberPDF(id) {
-  const member = members.find(m => m.id === id);
-  const doc = new jsPDF();
-  doc.text("Member Details", 20, 20);
-  doc.text(`Name: ${member.name}`, 20, 30);
-  doc.text(`Phone: ${member.phone}`, 20, 40);
-  doc.text(`Plan: ${member.plan}`, 20, 50);
-  doc.text(`Fee: ₹${member.fee}`, 20, 60);
-  doc.text(`Paid: ₹${member.paid}`, 20, 70);
-  doc.text(`Date: ${member.date}`, 20, 80);
-  doc.save(`${member.name}_member.pdf`);
-}
-
-// Export all members to PDF
-exportAllBtn.addEventListener("click", function () {
-  const doc = new jsPDF();
-  doc.text("All Members", 20, 20);
-
-  let y = 30;
   members.forEach((member, index) => {
-    doc.text(`${index + 1}. ${member.name} - ${member.phone} - ₹${member.fee} - Paid: ₹${member.paid}`, 20, y);
-    y += 10;
-    if (y > 270) {
-      doc.addPage();
-      y = 20;
-    }
+    const box = document.createElement("div");
+    box.className = "member-box";
+
+    const expireDate = new Date(member.startDate);
+    expireDate.setDate(expireDate.getDate() + 30);
+    const today = new Date();
+
+    const expired = today > expireDate;
+    if (expired) box.classList.add("expired");
+
+    box.innerHTML = `
+      <h3>${member.name}</h3>
+      <p>📞 ${member.number}</p>
+      <p>💳 Plan: ${member.plan}</p>
+      <p>📅 Start: ${member.startDate}</p>
+      <p>⏳ Expires: ${expireDate.toISOString().slice(0,10)}</p>
+      <button onclick="exportSingle(${index})">Export PDF</button>
+    `;
+    list.appendChild(box);
+  });
+}
+
+function exportAll() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const members = JSON.parse(localStorage.getItem("members") || "[]");
+
+  if (members.length === 0) {
+    alert("No members to export.");
+    return;
+  }
+
+  let y = 10;
+  doc.setFontSize(12);
+  members.forEach((m, i) => {
+    const expire = new Date(m.startDate);
+    expire.setDate(expire.getDate() + 30);
+
+    doc.text(`Name: ${m.name}`, 10, y);
+    doc.text(`Number: ${m.number}`, 10, y + 7);
+    doc.text(`Plan: ${m.plan}`, 10, y + 14);
+    doc.text(`Start: ${m.startDate}`, 10, y + 21);
+    doc.text(`Expires: ${expire.toISOString().slice(0,10)}`, 10, y + 28);
+    y += 40;
   });
 
-  doc.save("All_Members_List.pdf");
-});
+  doc.save("all_members.pdf");
+}
 
-// Initial load
-showLoginScreen();
+function exportSingle(index) {
+  const { jsPDF } = window.jspdf;
+  const members = JSON.parse(localStorage.getItem("members") || "[]");
+  const m = members[index];
+  const expire = new Date(m.startDate);
+  expire.setDate(expire.getDate() + 30);
+
+  const doc = new jsPDF();
+  doc.text(`Name: ${m.name}`, 10, 10);
+  doc.text(`Number: ${m.number}`, 10, 17);
+  doc.text(`Plan: ${m.plan}`, 10, 24);
+  doc.text(`Start: ${m.startDate}`, 10, 31);
+  doc.text(`Expires: ${expire.toISOString().slice(0,10)}`, 10, 38);
+  doc.save(`${m.name}_details.pdf`);
+}

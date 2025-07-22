@@ -3,45 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gym Member Tracker</title>
+  <title>Member Manager</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-  <div id="loginContainer">
+  <div class="login-box" id="loginBox">
     <h2>Login</h2>
-    <input type="text" id="loginNumber" placeholder="Enter number" />
-    <input type="password" id="loginPassword" placeholder="Enter password" />
-    <button onclick="checkLogin()">Login</button>
+    <input type="text" id="loginNumber" placeholder="Enter Number" />
+    <input type="password" id="loginPassword" placeholder="Enter Password" />
+    <button onclick="login()">Login</button>
   </div>
 
-  <div id="howAreYou" class="hidden">
-    <h2>How are you?</h2>
-  </div>
-
-  <div id="mainContainer" class="hidden">
-    <h2>Welcome Admin</h2>
-    <form id="memberForm" onsubmit="addMember(event)">
-      <input type="text" id="name" placeholder="Name" required />
-      <input type="text" id="phone" placeholder="Phone" required />
+  <div class="main-container" id="mainContainer" style="display:none;">
+    <h2>Member Manager</h2>
+    <div class="form">
+      <input type="text" id="memberName" placeholder="Member Name" required />
+      <input type="text" id="memberNumber" placeholder="Mobile Number" required />
+      <input type="text" id="memberPlan" placeholder="Plan Details" required />
       <input type="date" id="startDate" required />
-      <input type="number" id="amount" placeholder="Paid Amount" required />
-      <button type="submit">Add Member</button>
-    </form>
+      <button onclick="addMember()">Add Member</button>
+    </div>
 
-    <button onclick="exportAllToPDF()">Export All to PDF</button>
+    <button onclick="exportAll()">Export All as PDF</button>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th><th>Phone</th><th>Start Date</th>
-          <th>Paid Amount</th><th>Expiry</th><th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="memberTableBody"></tbody>
-    </table>
+    <div id="memberList"></div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <div class="unauth" id="unauth" style="display:none;">
+    <h2 style="color:white;">How are you</h2>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

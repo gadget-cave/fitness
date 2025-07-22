@@ -1,0 +1,66 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gym Members Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Fit Boys Gym - Members Fee Tracker</h1>
+  <a href="add.html" class="add-btn">➕ Add Member</a>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Mobile</th>
+        <th>Join Date</th>
+        <th>Expiry Date</th>
+        <th>Status</th>
+        <th>Days Left</th>
+        <th>WhatsApp</th>
+      </tr>
+    </thead>
+    <tbody id="memberTable"></tbody>
+  </table>
+
+  <script>
+    function loadMembers() {
+      let members = JSON.parse(localStorage.getItem("members")) || [];
+      let table = document.getElementById("memberTable");
+      table.innerHTML = "";
+
+      members.forEach((m, i) => {
+        let joinDate = new Date(m.joinDate);
+        let expiryDate = new Date(joinDate);
+        expiryDate.setDate(expiryDate.getDate() + 30);
+
+        let today = new Date();
+        let timeDiff = expiryDate - today;
+        let daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+        let status = daysLeft >= 0 ? "✅ Paid" : "❌ Expired";
+        let row = document.createElement("tr");
+
+        let whatsappMsg = `Hi ${m.name}, your gym fee of ₹500 has expired. Please renew it today to continue your membership. Thank you! – Fit Boys Gym 💪`;
+        let waLink = `https://wa.me/91${m.phone}?text=${encodeURIComponent(whatsappMsg)}`;
+
+        row.innerHTML = `
+          <td>${m.name}</td>
+          <td>${m.phone}</td>
+          <td>${joinDate.toLocaleDateString()}</td>
+          <td>${expiryDate.toLocaleDateString()}</td>
+          <td>${status}</td>
+          <td>${daysLeft} days</td>
+          <td>${daysLeft < 0 ? `<a href='${waLink}' target='_blank'>📲 Remind</a>` : '—'}</td>
+        `;
+
+        table.appendChild(row);
+      });
+    }
+
+    window.onload = loadMembers;
+  </script>
+</body>
+</html>

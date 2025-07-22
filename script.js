@@ -6,100 +6,91 @@ const firebaseConfig = {
   messagingSenderId: "1051044340053",
   appId: "1:1051044340053:web:7abd5a48e2f5428d8a8fdc"
 };
-// Initialize Firebase
+
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
+const db = firebase.firestore();
 
-// DOM elements
-const memberForm = document.getElementById("memberForm");
-const membersTable = document.getElementById("membersTable");
-const loginForm = document.getElementById("loginForm");
-const logoutBtn = document.getElementById("logoutBtn");
-const adminSection = document.getElementById("adminSection");
-const loginSection = document.getElementById("loginSection");
+// Elements
+const memberForm = document.getElementById('memberForm');
+const logoutBtn = document.getElementById('logoutBtn');
+const exportBtn = document.getElementById('exportBtn');
+const memberList = document.getElementById('memberList');
 
-// Handle Login
-if (loginForm) {
-  loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const email = loginForm["email"].value;
-    const password = loginForm["password"].value;
+// Add member
+memberForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('name').value;
+  const phone = document.getElementById('phone').value;
+  const fee = document.getElementById('fee').value;
+  const days = parseInt(document.getElementById('days').value);
+  const start = new Date();
+  const end = new Date();
+  end.setDate(start.getDate() + days);
 
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        loginForm.reset();
-      })
-      .catch((err) => alert("Login Failed: " + err.message));
+  db.collection('members').add({
+    name, phone, fee,
+    start: start.toISOString(),
+    end: end.toISOString()
+  }).then(() => {
+    alert("Member added!");
+    memberForm.reset();
+    loadMembers();
   });
-}
-
-// Handle Logout
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    auth.signOut();
-  });
-}
-
-// Auth state
-auth.onAuthStateChanged(user => {
-  if (user) {
-    loginSection.style.display = "none";
-    adminSection.style.display = "block";
-    fetchMembers();
-  } else {
-    loginSection.style.display = "block";
-    adminSection.style.display = "none";
-  }
 });
 
-// Add new member
-if (memberForm) {
-  memberForm.addEventListener("submit", (e) => {
-    e.preventDefault();
+// Load members
+function loadMembers() {
+  const now = new Date();
+  db.collection('members').get().then(snapshot => {
+    memberList.innerHTML = "";
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const start = new Date(data.start);
+      const end = new Date(data.end);
+      const expired = end < now;
 
-    const name = memberForm["name"].value;
-    const phone = memberForm["phone"].value;
-    const plan = memberForm["plan"].value;
-    const date = memberForm["date"].value;
-    const amount = memberForm["amount"].value;
+      const row = document.createElement('tr');
+      if (expired) row.classList.add('expired');
 
-    const newRef = db.ref("members").push();
-    newRef.set({
-      name,
-      phone,
-      plan,
-      date,
-      amount
-    });
-
-    memberForm.reset();
-  });
-}
-
-// Fetch and display all members
-function fetchMembers() {
-  db.ref("members").on("value", (snapshot) => {
-    membersTable.innerHTML = `
-      <tr>
-        <th>Name</th>
-        <th>Phone</th>
-        <th>Plan</th>
-        <th>Date</th>
-        <th>Amount</th>
-      </tr>
-    `;
-    snapshot.forEach(child => {
-      const data = child.val();
-      const row = document.createElement("tr");
       row.innerHTML = `
         <td>${data.name}</td>
         <td>${data.phone}</td>
-        <td>${data.plan}</td>
-        <td>${data.date}</td>
-        <td>${data.amount}</td>
+        <td>₹${data.fee}</td>
+        <td>${start.toLocaleDateString()}</td>
+        <td>${end.toLocaleDateString()}</td>
+        <td>${expired ? "Expired" : "Active"}</td>
+        <td><a href="https://wa.me/91${data.phone}" target="_blank">WhatsApp</a></td>
       `;
-      membersTable.appendChild(row);
+      memberList.appendChild(row);
     });
   });
 }
+
+// Export to PDF
+exportBtn.addEventListener('click', () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 10;
+
+  db.collection('members').get().then(snapshot => {
+    doc.text("Gym Members Report", 10, y);
+    y += 10;
+
+    snapshot.forEach(docSnap => {
+      const m = docSnap.data();
+      doc.text(`Name: ${m.name}, Phone: ${m.phone}, Fee: ₹${m.fee}`, 10, y);
+      y += 10;
+    });
+
+    doc.save("gym-members.pdf");
+  });
+});
+
+// Logout
+logoutBtn.addEventListener('click', () => {
+  alert('Logged out (dummy)');
+  // Hook in real auth logic if needed
+});
+
+// Initial load
+loadMembers();

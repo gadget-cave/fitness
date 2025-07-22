@@ -2,67 +2,23 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gym Fee Tracker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 30px auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      font-size: 16px;
-    }
-    button {
-      background-color: #28a745;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .expired {
-      background-color: #ffcaca;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <h2>Gym Fee Tracker</h2>
-    <button onclick="logout()">Logout</button>
+    <button id="logoutBtn">Logout</button>
 
     <h3>Add Member</h3>
-    <input id="name" placeholder="Member Name" />
-    <input id="phone" placeholder="Phone Number" />
-    <input id="fee" placeholder="Fee Paid" />
-    <input id="days" placeholder="Duration (in days)" />
-    <button onclick="addMember()">Add</button>
+    <form id="memberForm">
+      <input id="name" placeholder="Member Name" required />
+      <input id="phone" placeholder="Phone Number" required />
+      <input id="fee" placeholder="Fee Paid" required />
+      <input id="days" placeholder="Duration (in days)" required />
+      <button type="submit">Add</button>
+    </form>
 
     <h3>All Members</h3>
     <table id="membersTable">
@@ -71,115 +27,22 @@
           <th>Name</th>
           <th>Phone</th>
           <th>Fee</th>
-          <th>Start Date</th>
-          <th>End Date</th>
+          <th>Start</th>
+          <th>End</th>
           <th>Status</th>
-          <th>Actions</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="memberList"></tbody>
     </table>
-    <button onclick="exportToPDF()">Export All to PDF</button>
+
+    <button id="exportBtn">Export All to PDF</button>
   </div>
 
-  <!-- Firebase & Scripts -->
+  <!-- Firebase + Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDf7i6GDLSTKNI8UDPTw3-cLY5XkozSdx8",
-      authDomain: "gym-fee-tracker-ecc75.firebaseapp.com",
-      projectId: "gym-fee-tracker-ecc75",
-      storageBucket: "gym-fee-tracker-ecc75.appspot.com",
-      messagingSenderId: "1051044340053",
-      appId: "1:1051044340053:web:7abd5a48e2f5428d8a8fdc",
-      measurementId: "G-RTX4JWF8EJ"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    function logout() {
-      alert('Logging out...');
-      // You can add real auth logout here
-    }
-
-    function addMember() {
-      const name = document.getElementById('name').value;
-      const phone = document.getElementById('phone').value;
-      const fee = document.getElementById('fee').value;
-      const days = parseInt(document.getElementById('days').value);
-      const start = new Date();
-      const end = new Date();
-      end.setDate(start.getDate() + days);
-
-      db.collection("members").add({
-        name, phone, fee,
-        start: start.toISOString(),
-        end: end.toISOString(),
-      }).then(() => {
-        alert("Member added!");
-        loadMembers();
-      });
-    }
-
-    function loadMembers() {
-      const now = new Date();
-      db.collection("members").get().then(snapshot => {
-        const tbody = document.getElementById("memberList");
-        tbody.innerHTML = "";
-
-        let members = [];
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const start = new Date(data.start);
-          const end = new Date(data.end);
-          const expired = end < now;
-          members.push({ ...data, id: doc.id, expired, start, end });
-        });
-
-        members.sort((a, b) => b.expired - a.expired);
-        members.forEach(m => {
-          const tr = document.createElement("tr");
-          if (m.expired) tr.classList.add("expired");
-          tr.innerHTML = `
-            <td>${m.name}</td>
-            <td>${m.phone}</td>
-            <td>₹${m.fee}</td>
-            <td>${m.start.toLocaleDateString()}</td>
-            <td>${m.end.toLocaleDateString()}</td>
-            <td>${m.expired ? 'Expired' : 'Active'}</td>
-            <td>
-              <a href="https://wa.me/91${m.phone}" target="_blank">WhatsApp</a>
-              <button onclick="exportMember('${m.id}')">Export</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      });
-    }
-
-    function exportToPDF() {
-      import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js').then(jsPDF => {
-        const doc = new jsPDF.jsPDF();
-        let y = 10;
-        doc.text("Gym Member List", 10, y);
-        y += 10;
-
-        db.collection("members").get().then(snapshot => {
-          snapshot.forEach(docSnap => {
-            const m = docSnap.data();
-            doc.text(`Name: ${m.name}, Phone: ${m.phone}, Fee: ${m.fee}`, 10, y);
-            y += 10;
-          });
-          doc.save("gym-members.pdf");
-        });
-      });
-    }
-
-    loadMembers();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>

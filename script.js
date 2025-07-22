@@ -6,110 +6,100 @@ const firebaseConfig = {
   messagingSenderId: "1051044340053",
   appId: "1:1051044340053:web:7abd5a48e2f5428d8a8fdc"
 };
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db = firebase.database();
+const auth = firebase.auth();
 
-// Add member to Firestore
-function addMember() {
-  const name = document.getElementById('name').value;
-  const phone = document.getElementById('phone').value;
-  const fee = document.getElementById('fee').value;
-  const days = parseInt(document.getElementById('days').value);
+// DOM elements
+const memberForm = document.getElementById("memberForm");
+const membersTable = document.getElementById("membersTable");
+const loginForm = document.getElementById("loginForm");
+const logoutBtn = document.getElementById("logoutBtn");
+const adminSection = document.getElementById("adminSection");
+const loginSection = document.getElementById("loginSection");
 
-  if (!name || !phone || !fee || !days) {
-    alert("Fill all fields!");
-    return;
-  }
+// Handle Login
+if (loginForm) {
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = loginForm["email"].value;
+    const password = loginForm["password"].value;
 
-  const start = new Date();
-  const end = new Date();
-  end.setDate(start.getDate() + days);
-
-  db.collection("members").add({
-    name,
-    phone,
-    fee,
-    start: start.toISOString(),
-    end: end.toISOString(),
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    alert("Member added!");
-    document.getElementById('name').value = '';
-    document.getElementById('phone').value = '';
-    document.getElementById('fee').value = '';
-    document.getElementById('days').value = '';
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => {
+        loginForm.reset();
+      })
+      .catch((err) => alert("Login Failed: " + err.message));
   });
 }
 
-// Load members with live updates
-db.collection("members").orderBy("timestamp", "desc")
-  .onSnapshot(snapshot => {
-    const now = new Date();
-    const tbody = document.getElementById("memberList");
-    tbody.innerHTML = "";
+// Handle Logout
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    auth.signOut();
+  });
+}
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const start = new Date(data.start);
-      const end = new Date(data.end);
-      const expired = end < now;
+// Auth state
+auth.onAuthStateChanged(user => {
+  if (user) {
+    loginSection.style.display = "none";
+    adminSection.style.display = "block";
+    fetchMembers();
+  } else {
+    loginSection.style.display = "block";
+    adminSection.style.display = "none";
+  }
+});
 
-      const tr = document.createElement("tr");
-      if (expired) tr.classList.add("expired");
+// Add new member
+if (memberForm) {
+  memberForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-      tr.innerHTML = `
+    const name = memberForm["name"].value;
+    const phone = memberForm["phone"].value;
+    const plan = memberForm["plan"].value;
+    const date = memberForm["date"].value;
+    const amount = memberForm["amount"].value;
+
+    const newRef = db.ref("members").push();
+    newRef.set({
+      name,
+      phone,
+      plan,
+      date,
+      amount
+    });
+
+    memberForm.reset();
+  });
+}
+
+// Fetch and display all members
+function fetchMembers() {
+  db.ref("members").on("value", (snapshot) => {
+    membersTable.innerHTML = `
+      <tr>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Plan</th>
+        <th>Date</th>
+        <th>Amount</th>
+      </tr>
+    `;
+    snapshot.forEach(child => {
+      const data = child.val();
+      const row = document.createElement("tr");
+      row.innerHTML = `
         <td>${data.name}</td>
         <td>${data.phone}</td>
-        <td>₹${data.fee}</td>
-        <td>${start.toLocaleDateString()}</td>
-        <td>${end.toLocaleDateString()}</td>
-        <td>${expired ? "Expired" : "Active"}</td>
-        <td>
-          <a href="https://wa.me/91${data.phone}" target="_blank">WhatsApp</a><br>
-          <button onclick="exportMember('${doc.id}')">PDF</button>
-        </td>
+        <td>${data.plan}</td>
+        <td>${data.date}</td>
+        <td>${data.amount}</td>
       `;
-      tbody.appendChild(tr);
+      membersTable.appendChild(row);
     });
-  });
-
-// Export all members to PDF
-function exportToPDF() {
-  import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js').then(jsPDF => {
-    const { jsPDF: PDF } = jsPDF;
-    const doc = new PDF();
-    let y = 10;
-
-    doc.text("Gym Member List", 10, y);
-    y += 10;
-
-    db.collection("members").get().then(snapshot => {
-      snapshot.forEach(docSnap => {
-        const m = docSnap.data();
-        doc.text(`Name: ${m.name}, Phone: ${m.phone}, Fee: ₹${m.fee}`, 10, y);
-        y += 10;
-      });
-      doc.save("gym-members.pdf");
-    });
-  });
-}
-
-// Export individual member
-function exportMember(id) {
-  db.collection("members").doc(id).get().then(docSnap => {
-    if (docSnap.exists) {
-      const m = docSnap.data();
-      import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js').then(jsPDF => {
-        const { jsPDF: PDF } = jsPDF;
-        const doc = new PDF();
-        doc.text("Gym Member Details", 10, 10);
-        doc.text(`Name: ${m.name}`, 10, 20);
-        doc.text(`Phone: ${m.phone}`, 10, 30);
-        doc.text(`Fee: ₹${m.fee}`, 10, 40);
-        doc.text(`Start: ${new Date(m.start).toLocaleDateString()}`, 10, 50);
-        doc.text(`End: ${new Date(m.end).toLocaleDateString()}`, 10, 60);
-        doc.save(`${m.name}_details.pdf`);
-      });
-    }
   });
 }

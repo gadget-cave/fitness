@@ -13,36 +13,39 @@
 <body>
   <div class="container">
     <div class="header">
-      <h2>Gym Fee Tracker</h2>
-      <button id="logoutBtn">Logout</button>
+      <h1>🏋️‍♂️ Gym Fee Tracker</h1>
+      <button id="logoutBtn" class="logout">Logout</button>
     </div>
 
-    <h3>Add Member</h3>
-    <form id="memberForm">
-      <input id="name" placeholder="Member Name" required />
-      <input id="phone" placeholder="Phone Number" required />
-      <input id="fee" placeholder="Fee Paid" required />
-      <input id="days" placeholder="Duration (in days)" required />
-      <button type="submit">Add</button>
-    </form>
+    <div class="form-section">
+      <h2>Add New Member</h2>
+      <form id="memberForm">
+        <input type="text" id="name" placeholder="Member Name" required />
+        <input type="tel" id="phone" placeholder="Phone Number" required />
+        <input type="number" id="fee" placeholder="Fee Paid (₹)" required />
+        <input type="number" id="days" placeholder="Duration (in days)" required />
+        <button type="submit" class="add-btn">➕ Add Member</button>
+      </form>
+    </div>
 
-    <h3>All Members</h3>
-    <table id="membersTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Phone</th>
-          <th>Fee</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="memberList"></tbody>
-    </table>
-
-    <button id="exportBtn">Export All to PDF</button>
+    <div class="members-section">
+      <h2>All Members</h2>
+      <table id="membersTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Fee</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="memberList"></tbody>
+      </table>
+      <button id="exportBtn" class="export-btn">📄 Export to PDF</button>
+    </div>
   </div>
 
   <script src="script.js"></script>

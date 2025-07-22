@@ -1,69 +1,65 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f7f7f7;
+  background: #f3f3f3;
   margin: 0;
-  padding: 0;
+  padding: 20px;
 }
 
-.login-container, .dashboard {
-  max-width: 600px;
+h2 {
+  text-align: center;
+}
+
+.login-box, .form {
+  max-width: 400px;
   margin: auto;
   padding: 20px;
   background: white;
-  margin-top: 50px;
   border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px #ccc;
 }
 
-h2, h3 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-input {
+input, button {
   width: 100%;
+  margin-top: 10px;
   padding: 10px;
-  margin: 8px 0;
-  box-sizing: border-box;
+  font-size: 16px;
 }
 
 button {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  background: #2e8b57;
+  background: #28a745;
   color: white;
   border: none;
   cursor: pointer;
-  border-radius: 5px;
 }
 
 button:hover {
-  background: #246e45;
+  background: #218838;
 }
 
-.hidden {
-  display: none;
-}
-
-.table-section {
-  margin-top: 30px;
-  overflow-x: auto;
+.error {
+  color: red;
+  text-align: center;
 }
 
 table {
   width: 100%;
+  margin-top: 20px;
   border-collapse: collapse;
-  font-size: 14px;
 }
 
 th, td {
-  padding: 10px;
-  text-align: center;
+  padding: 12px;
   border: 1px solid #ddd;
+  text-align: center;
 }
 
 .expired {
-  background-color: #ffcccc !important;
-  color: red;
+  background-color: #f8d7da !important;
+  color: #721c24;
+}
+
+.export-buttons {
+  max-width: 400px;
+  margin: 20px auto;
+  text-align: center;
 }

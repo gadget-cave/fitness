@@ -1,11 +1,12 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyDf7i6GDLSTKNI8UDPTw3-cLY5XkozSdx8",
-  authDomain: "gym-fee-tracker-ecc75.firebaseapp.com",
-  projectId: "gym-fee-tracker-ecc75",
-  storageBucket: "gym-fee-tracker-ecc75.appspot.com",
-  messagingSenderId: "1051044340053",
-  appId: "1:1051044340053:web:7abd5a48e2f5428d8a8fdc"
+  apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
+  authDomain: "gym-fees-5dbcf.firebaseapp.com",
+  projectId: "gym-fees-5dbcf",
+  storageBucket: "gym-fees-5dbcf.firebasestorage.app",
+  messagingSenderId: "423386853721",
+  appId: "1:423386853721:web:fafd195e95e6b1cb091c48"
 };
+
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();

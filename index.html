@@ -1,48 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gadget Cave - Member Tracker</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
-  <div class="login-container" id="loginPage">
-    <h2>Login</h2>
-    <input type="text" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
+  <div class="container" id="loginContainer">
+    <h2>Admin Login</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
     <button onclick="login()">Login</button>
-    <p id="loginError"></p>
+    <p id="loginStatus"></p>
   </div>
 
-  <div class="main-container hidden" id="mainPage">
-    <div class="top-bar">
-      <h2>🧑‍💼 Member Management</h2>
+  <div class="container hidden" id="adminContainer">
+    <div class="topbar">
+      <h2>Welcome Admin</h2>
       <button onclick="logout()">Logout</button>
     </div>
-    <div class="form-container">
-      <input type="text" id="memberName" placeholder="Name" />
-      <input type="text" id="memberPhone" placeholder="Phone" />
-      <input type="text" id="memberFees" placeholder="Fees" />
-      <input type="date" id="expiryDate" placeholder="Expiry Date" />
+
+    <div class="form-section">
+      <h3>Add Member</h3>
+      <input type="text" id="memberName" placeholder="Member Name">
+      <input type="text" id="phone" placeholder="Phone Number">
+      <input type="text" id="fees" placeholder="Fees">
+      <input type="date" id="expiryDate">
       <button onclick="addMember()">Add Member</button>
-      <button onclick="exportPDF()">Export to PDF</button>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Phone</th>
-          <th>Fees</th>
-          <th>Expiry Date</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="memberTable"></tbody>
-    </table>
+    <div class="table-section">
+      <h3>All Members</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Fees</th>
+            <th>Expiry</th>
+            <th>Status</th>
+            <th>Chat</th>
+          </tr>
+        </thead>
+        <tbody id="membersTable"></tbody>
+      </table>
+    </div>
   </div>
 
   <script src="script.js"></script>

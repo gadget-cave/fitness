@@ -1,106 +1,170 @@
+/* Reset and Base */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  background: #f4f6f9;
-  color: #333;
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f4f7fa;
   padding: 20px;
+  color: #333;
 }
 
+/* Container */
 .container {
-  max-width: 1000px;
-  margin: auto;
+  max-width: 960px;
+  margin: 0 auto;
   background: #fff;
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Header */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
 .header h2 {
-  color: #2c3e50;
-  font-size: 26px;
+  color: #0d6efd;
 }
 
-button {
-  background: #3498db;
+#logoutBtn {
+  padding: 8px 16px;
+  background-color: #dc3545;
   color: white;
   border: none;
-  padding: 10px 18px;
-  font-size: 15px;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: 0.3s ease;
 }
 
-button:hover {
-  background: #2980b9;
+#logoutBtn:hover {
+  background-color: #c82333;
 }
 
+/* Forms */
 form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
+  gap: 10px;
+  margin-bottom: 25px;
 }
 
 form input {
   padding: 10px;
-  border-radius: 6px;
+  font-size: 16px;
   border: 1px solid #ccc;
-  font-size: 14px;
+  border-radius: 8px;
 }
 
+form button {
+  padding: 10px;
+  font-size: 16px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+form button:hover {
+  background-color: #0b5ed7;
+}
+
+/* Table */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
-  font-size: 15px;
 }
 
-th, td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: center;
-}
-
-th {
-  background: #3498db;
+thead {
+  background-color: #0d6efd;
   color: white;
 }
 
-tbody tr:nth-child(even) {
+th, td {
+  text-align: center;
+  padding: 12px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+tr:nth-child(even) {
   background-color: #f2f2f2;
 }
 
-.status-active {
-  color: green;
-  font-weight: bold;
+/* WhatsApp Button */
+.whatsapp-btn {
+  background-color: #25D366;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.status-expired {
-  color: red;
-  font-weight: bold;
+.whatsapp-btn:hover {
+  background-color: #1ebe5b;
 }
 
-@media (max-width: 600px) {
-  form {
-    grid-template-columns: 1fr;
-  }
+/* Export Button */
+#exportBtn {
+  background-color: #20c997;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
 
+#exportBtn:hover {
+  background-color: #198754;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
   .header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    gap: 15px;
+  }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tr {
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  td {
+    text-align: left;
+    padding: 8px;
+    position: relative;
+  }
+
+  td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #0d6efd;
   }
 }

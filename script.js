@@ -1,4 +1,6 @@
-// Firebase config
+// ------------------------
+// Firebase Configuration
+// ------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
   authDomain: "gym-fees-5dbcf.firebaseapp.com",
@@ -8,17 +10,14 @@ const firebaseConfig = {
   appId: "1:423386853721:web:fafd195e95e6b1cb091c48"
 };
 
-
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Logout
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  auth.signOut().then(() => {
-    window.location.href = "login.html";
-  });
-});
+// ------------------------
+// Authentication
+// ------------------------
 
 // Check if user is logged in
 auth.onAuthStateChanged(user => {
@@ -26,17 +25,32 @@ auth.onAuthStateChanged(user => {
     alert("Who are you?");
     window.location.href = "login.html";
   } else {
-    loadMembers();
+    loadMembers(); // Load member data after successful login
   }
 });
 
+// Logout functionality
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  auth.signOut().then(() => {
+    window.location.href = "login.html";
+  });
+});
+
+// ------------------------
 // Add Member
+// ------------------------
 document.getElementById("memberForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const fee = document.getElementById("fee").value.trim();
   const days = parseInt(document.getElementById("days").value);
+
+  if (!name || !phone || !fee || isNaN(days)) {
+    alert("Please fill in all fields correctly.");
+    return;
+  }
 
   const startDate = new Date();
   const endDate = new Date();
@@ -53,7 +67,9 @@ document.getElementById("memberForm").addEventListener("submit", async (e) => {
   document.getElementById("memberForm").reset();
 });
 
-// Load members
+// ------------------------
+// Load Members
+// ------------------------
 function loadMembers() {
   db.collection("members").orderBy("end", "asc").onSnapshot(snapshot => {
     const list = document.getElementById("memberList");
@@ -61,13 +77,12 @@ function loadMembers() {
 
     snapshot.forEach(doc => {
       const data = doc.data();
-      const tr = document.createElement("tr");
-
       const start = data.start.toDate();
       const end = data.end.toDate();
       const today = new Date();
       const isActive = end >= today;
 
+      const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${data.name}</td>
         <td>${data.phone}</td>
@@ -82,14 +97,18 @@ function loadMembers() {
   });
 }
 
-// Delete member
+// ------------------------
+// Delete Member
+// ------------------------
 function deleteMember(id) {
   if (confirm("Are you sure you want to delete this member?")) {
     db.collection("members").doc(id).delete();
   }
 }
 
+// ------------------------
 // Export to PDF
+// ------------------------
 document.getElementById("exportBtn").addEventListener("click", () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();

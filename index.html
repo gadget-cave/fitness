@@ -1,42 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gym Fee Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Manager</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .login-box, .member-box { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+    .hidden { display: none; }
+    input, button, select { width: 100%; padding: 10px; margin: 10px 0; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+  </style>
 </head>
 <body>
-  <h1>🏋️ Gym Member Fee Tracker</h1>
-
-  <form id="memberForm">
-    <input type="text" id="name" placeholder="Member Name" required />
-    <input type="tel" id="phone" placeholder="Phone (10 digits)" required />
-    <input type="number" id="paidAmount" placeholder="Paid Amount ₹" required />
-    <input type="date" id="startDate" required />
-    <button type="submit">Add Member</button>
-  </form>
-
-  <div class="actions">
-    <button onclick="exportAllToPDF()">📄 Export All as PDF</button>
+  <div class="login-box" id="loginBox">
+    <h2>Login</h2>
+    <input type="text" id="loginNumber" placeholder="Enter Number">
+    <input type="password" id="loginPassword" placeholder="Enter Password">
+    <button onclick="handleLogin()">Login</button>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Phone</th>
-        <th>Amount</th>
-        <th>Start Date</th>
-        <th>Valid Till</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="memberTable"></tbody>
-  </table>
+  <div class="member-box hidden" id="mainApp">
+    <h2>Add Member</h2>
+    <input type="text" id="name" placeholder="Name">
+    <input type="text" id="address" placeholder="Address">
+    <input type="number" id="phone" placeholder="Phone">
+    <input type="text" id="place" placeholder="Place">
+    <input type="date" id="startDate" placeholder="Starting Date">
+    <input type="text" id="paidAmount" placeholder="Paid Amount">
+    <button onclick="addMember()">Add Member</button>
+    <button onclick="exportAllPDF()">Export All as PDF</button>
+
+    <h2>Members</h2>
+    <table id="memberTable"></table>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const USERS = [{ number: '917994160120', password: 'hisham@123' }];
+    const MEMBER_KEY = 'members';
+
+    function handleLogin() {
+      const number = document.getElementById('loginNumber').value;
+      const password = document.getElementById('loginPassword').value;
+      const isValid = USERS.some(user => user.number === number && user.password === password);
+
+      if (isValid) {
+        document.getElementById('loginBox').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        loadMembers();
+      } else {
+        document.body.innerHTML = '<h1 style="text-align:center; margin-top:100px;">How are you?</h1>';
+      }
+    }
+
+    function getMembers() {
+      return JSON.parse(localStorage.getItem(MEMBER_KEY) || '[]');
+    }
+
+    function saveMembers(data) {
+      localStorage.setItem(MEMBER_KEY, JSON.stringify(data));
+    }
+
+    function loadMembers() {
+      const members = getMembers();
+      const table = document.getElementById('memberTable');
+      table.innerHTML = '<tr><th>Name</th><th>Address</th><th>Phone</th><th>Place</th><th>Start Date</th><th>Paid</th><th>Edit</th><th>PDF</th></tr>';
+      members.forEach((m, i) => {
+        table.innerHTML += `<tr>
+          <td>${m.name}</td>
+          <td>${m.address}</td>
+          <td>${m.phone}</td>
+          <td>${m.place}</td>
+          <td>${m.startDate}</td>
+          <td>${m.paidAmount}</td>
+          <td><button onclick="editMember(${i})">Edit</button></td>
+          <td><button onclick="exportPDF(${i})">PDF</button></td>
+        </tr>`;
+      });
+    }
+
+    function addMember() {
+      const name = document.getElementById('name').value;
+      const address = document.getElementById('address').value;
+      const phone = document.getElementById('phone').value;
+      const place = document.getElementById('place').value;
+      const startDate = document.getElementById('startDate').value;
+      const paidAmount = document.getElementById('paidAmount').value;
+      const members = getMembers();
+      members.push({ name, address, phone, place, startDate, paidAmount });
+      saveMembers(members);
+      loadMembers();
+    }
+
+    function editMember(i) {
+      const members = getMembers();
+      const m = members[i];
+      document.getElementById('name').value = m.name;
+      document.getElementById('address').value = m.address;
+      document.getElementById('phone').value = m.phone;
+      document.getElementById('place').value = m.place;
+      document.getElementById('startDate').value = m.startDate;
+      document.getElementById('paidAmount').value = m.paidAmount;
+      members.splice(i, 1);
+      saveMembers(members);
+      loadMembers();
+    }
+
+    function exportPDF(i) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const m = getMembers()[i];
+      doc.text(`Name: ${m.name}`, 10, 10);
+      doc.text(`Address: ${m.address}`, 10, 20);
+      doc.text(`Phone: ${m.phone}`, 10, 30);
+      doc.text(`Place: ${m.place}`, 10, 40);
+      doc.text(`Start Date: ${m.startDate}`, 10, 50);
+      doc.text(`Paid: ${m.paidAmount}`, 10, 60);
+      doc.save(`${m.name}-details.pdf`);
+    }
+
+    function exportAllPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const members = getMembers();
+      members.forEach((m, i) => {
+        doc.text(`${i+1}) Name: ${m.name}, Address: ${m.address}, Phone: ${m.phone}, Place: ${m.place}, Start Date: ${m.startDate}, Paid: ${m.paidAmount}`, 10, 10 + (i * 10));
+      });
+      doc.save('AllMembers.pdf');
+    }
+  </script>
 </body>
 </html>

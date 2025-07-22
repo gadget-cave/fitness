@@ -1,47 +1,94 @@
-/* style.css */
 body {
   font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
   margin: 0;
-  padding: 20px;
-  background: #f4f4f4;
+  padding: 0;
 }
 
-.login-page,
-.app {
-  max-width: 500px;
-  margin: auto;
-  background: white;
+.login-box {
+  width: 300px;
+  margin: 80px auto;
+  background: #222;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  text-align: center;
 }
 
-input {
-  display: block;
-  width: 100%;
-  padding: 10px;
+.login-box input {
+  width: 90%;
   margin: 10px 0;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
 }
 
-button {
+.login-box button {
   padding: 10px 20px;
   background: #28a745;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
 }
 
-button:hover {
-  background: #218838;
+.main-container {
+  max-width: 800px;
+  margin: 20px auto;
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
 }
 
-.member {
-  border: 1px solid #ddd;
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form input {
+  flex: 1;
   padding: 10px;
-  margin: 10px 0;
-  border-radius: 4px;
-  background: #f9f9f9;
+  border-radius: 5px;
+  border: none;
+}
+
+.form button {
+  padding: 10px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.member-box {
+  background: #333;
+  padding: 15px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.member-box.expired {
+  background: #9c2e2e;
+}
+
+.member-box h3 {
+  margin: 0 0 5px;
+}
+
+.member-box button {
+  padding: 5px 10px;
+  background: #ffc107;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  cursor: pointer;
 }

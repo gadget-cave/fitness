@@ -1,47 +1,79 @@
 body {
   font-family: 'Segoe UI', sans-serif;
-  background: #f2f2f2;
-  margin: 0;
+  background: #f0f2f5;
   padding: 20px;
+  margin: 0;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 700px;
   margin: auto;
-  background: white;
+  background: #fff;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  box-shadow: 0 0 12px rgba(0,0,0,0.1);
 }
 
-input, button {
-  display: block;
-  width: 100%;
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+form input, form button {
   padding: 10px;
-  margin-bottom: 10px;
+  font-size: 1rem;
+  flex: 1 1 30%;
 }
 
-button {
-  background-color: #007bff;
-  border: none;
+form button {
+  background-color: #4CAF50;
   color: white;
-  font-weight: bold;
+  border: none;
   cursor: pointer;
-  border-radius: 6px;
+  flex: 1 1 100%;
 }
 
-button:hover {
-  background-color: #0056b3;
+form button:hover {
+  background-color: #45a049;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 th, td {
-  padding: 10px;
-  text-align: left;
-  border: 1px solid #ccc;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.expired {
+  background-color: #ffcccc;
+}
+
+button.whatsapp {
+  background-color: #25D366;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#totalFees {
+  margin-top: 20px;
+  font-weight: bold;
+  color: #222;
+  text-align: center;
 }

@@ -2,213 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Member Manager</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Login</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      background: #f1f1f1;
-    }
-    .login, .container {
-      max-width: 500px;
-      margin: auto;
-      margin-top: 50px;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-    h2 {
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    .actions button {
-      margin: 2px;
-      padding: 5px;
-      font-size: 12px;
-    }
-    .logout-btn {
-      background-color: red;
-      color: white;
-      margin-top: 20px;
-    }
+    body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .login-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px #ccc; }
+    input { display: block; margin: 10px 0; padding: 10px; width: 100%; }
+    button { padding: 10px 20px; }
   </style>
 </head>
 <body>
-
-<div class="login" id="loginPage">
-  <h2>Login</h2>
-  <label>Mobile Number</label>
-  <input type="text" id="loginNumber" placeholder="Enter Number">
-  <label>Password</label>
-  <input type="password" id="loginPass" placeholder="Enter Password">
-  <button onclick="login()">Login</button>
-</div>
-
-<div class="container" id="mainApp" style="display:none;">
-  <h2>Member Manager</h2>
-  <label>Name</label>
-  <input type="text" id="name">
-  <label>Mobile</label>
-  <input type="text" id="mobile">
-  <label>Amount</label>
-  <input type="text" id="amount">
-  <label>Start Date</label>
-  <input type="date" id="startdate">
-  <button onclick="addMember()">Add/Update Member</button>
-  <button onclick="exportAll()">Export All to PDF</button>
-
-  <table id="memberTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Mobile</th>
-        <th>Amount</th>
-        <th>Start Date</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <button class="logout-btn" onclick="logout()">Logout</button>
-</div>
-
-<script>
-  const allowedNumber = '917994160120';
-  const allowedPassword = 'hisham@123';
-
-  let members = JSON.parse(localStorage.getItem("members") || "[]");
-  let editingIndex = null;
-
-  function login() {
-    const number = document.getElementById('loginNumber').value;
-    const pass = document.getElementById('loginPass').value;
-    if (number === allowedNumber && pass === allowedPassword) {
-      document.getElementById('loginPage').style.display = 'none';
-      document.getElementById('mainApp').style.display = 'block';
-      displayMembers();
-    } else {
-      document.body.innerHTML = "<h1 style='text-align:center;margin-top:200px;'>How are you 😄</h1>";
+  <div class="login-box">
+    <h2>Admin Login</h2>
+    <input type="text" id="loginNumber" placeholder="Phone Number">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="loginError" style="color:red;"></p>
+  </div>
+  <script>
+    function login() {
+      const number = document.getElementById("loginNumber").value;
+      const pass = document.getElementById("loginPassword").value;
+      if (number === "917994160120" && pass === "hisham@123") {
+        localStorage.setItem("loggedIn", "yes");
+        window.location.href = "home.html";
+      } else {
+        document.getElementById("loginError").innerText = "How are you!";
+      }
     }
-  }
-
-  function logout() {
-    location.reload();
-  }
-
-  function addMember() {
-    const name = document.getElementById('name').value;
-    const mobile = document.getElementById('mobile').value;
-    const amount = document.getElementById('amount').value;
-    const startdate = document.getElementById('startdate').value;
-
-    if (!name || !mobile || !amount || !startdate) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    const newMember = { name, mobile, amount, startdate };
-
-    if (editingIndex !== null) {
-      members[editingIndex] = newMember;
-      editingIndex = null;
-    } else {
-      members.push(newMember);
-    }
-
-    localStorage.setItem("members", JSON.stringify(members));
-    displayMembers();
-    clearForm();
-  }
-
-  function clearForm() {
-    document.getElementById('name').value = '';
-    document.getElementById('mobile').value = '';
-    document.getElementById('amount').value = '';
-    document.getElementById('startdate').value = '';
-  }
-
-  function displayMembers() {
-    const tbody = document.querySelector("#memberTable tbody");
-    tbody.innerHTML = "";
-    members.forEach((m, index) => {
-      const row = `<tr>
-        <td>${m.name}</td>
-        <td>${m.mobile}</td>
-        <td>${m.amount}</td>
-        <td>${m.startdate}</td>
-        <td class="actions">
-          <button onclick="editMember(${index})">Edit</button>
-          <button onclick="deleteMember(${index})">Delete</button>
-          <button onclick="exportOne(${index})">PDF</button>
-        </td>
-      </tr>`;
-      tbody.innerHTML += row;
-    });
-  }
-
-  function editMember(index) {
-    const m = members[index];
-    document.getElementById('name').value = m.name;
-    document.getElementById('mobile').value = m.mobile;
-    document.getElementById('amount').value = m.amount;
-    document.getElementById('startdate').value = m.startdate;
-    editingIndex = index;
-  }
-
-  function deleteMember(index) {
-    if (confirm("Are you sure you want to delete this member?")) {
-      members.splice(index, 1);
-      localStorage.setItem("members", JSON.stringify(members));
-      displayMembers();
-    }
-  }
-
-  function exportOne(index) {
-    const m = members[index];
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text(`Member Details`, 10, 10);
-    doc.text(`Name: ${m.name}`, 10, 20);
-    doc.text(`Mobile: ${m.mobile}`, 10, 30);
-    doc.text(`Amount: ${m.amount}`, 10, 40);
-    doc.text(`Start Date: ${m.startdate}`, 10, 50);
-    doc.save(`${m.name}_details.pdf`);
-  }
-
-  function exportAll() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text("All Member Details", 10, 10);
-    members.forEach((m, i) => {
-      doc.text(`${i + 1}. ${m.name}, ${m.mobile}, ₹${m.amount}, Start: ${m.startdate}`, 10, 20 + i * 10);
-    });
-    doc.save("all_members.pdf");
-  }
-</script>
-
+  </script>
 </body>
 </html>

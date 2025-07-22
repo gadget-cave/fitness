@@ -1,60 +1,92 @@
 body {
   font-family: 'Segoe UI', sans-serif;
-  background-color: #f5f7fa;
+  background-color: #f0f2f5;
   margin: 0;
-  padding: 20px;
+  padding: 0;
 }
 
 .container {
-  background: white;
-  max-width: 800px;
-  margin: auto;
-  padding: 25px;
+  background: #fff;
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 0 12px rgba(0,0,0,0.1);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
 }
 
 h2, h3 {
   text-align: center;
-  color: #333;
+  color: #222;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
 }
 
 form input {
-  width: 22%;
   padding: 10px;
-  margin: 5px;
   border: 1px solid #ccc;
   border-radius: 8px;
+  width: 180px;
 }
 
 form button {
-  padding: 10px 15px;
-  margin: 10px 5px;
-  background-color: #007bff;
+  padding: 10px 20px;
+  background-color: royalblue;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
 }
 
+form button:hover {
+  background-color: dodgerblue;
+}
+
+#logoutBtn, #exportBtn {
+  background-color: crimson;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  float: right;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+#logoutBtn:hover, #exportBtn:hover {
+  background-color: darkred;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
 table th, table td {
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ddd;
   text-align: center;
 }
 
 table th {
-  background-color: #f0f0f0;
+  background-color: #f4f4f4;
 }
 
-button#logoutBtn, button#exportBtn {
-  float: right;
-  margin-left: 10px;
-  background-color: crimson;
+button.delete-btn {
+  padding: 5px 10px;
+  background-color: orangered;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button.delete-btn:hover {
+  background-color: darkorange;
 }

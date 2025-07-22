@@ -1,78 +1,95 @@
 const form = document.getElementById("memberForm");
-const tableBody = document.querySelector("#membersTable tbody");
-const totalAmountDiv = document.getElementById("totalAmount");
+const table = document.getElementById("memberTable");
+const localKey = "gym_members";
 
-let members = JSON.parse(localStorage.getItem("gymMembers")) || [];
+// Load from localStorage
+let members = JSON.parse(localStorage.getItem(localKey)) || [];
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const paidAmount = parseInt(document.getElementById("paidAmount").value);
-  const startDate = document.getElementById("startDate").value;
-
-  if (!name || !phone || !startDate || !paidAmount) return;
-
-  const monthsPaid = Math.floor(paidAmount / 500);
-  const expiryDate = new Date(startDate);
-  expiryDate.setDate(expiryDate.getDate() + monthsPaid * 30);
-
-  members.push({ name, phone, paidAmount, startDate, expiryDate });
-  saveAndRender();
-  form.reset();
-});
-
-function saveAndRender() {
-  localStorage.setItem("gymMembers", JSON.stringify(members));
+function saveMembers() {
+  localStorage.setItem(localKey, JSON.stringify(members));
   renderTable();
 }
 
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = form.name.value.trim();
+  const phone = form.phone.value.trim();
+  const paidAmount = parseInt(form.paidAmount.value.trim());
+  const startDate = new Date(form.startDate.value);
+
+  const months = Math.floor(paidAmount / 500);
+  const validTill = new Date(startDate);
+  validTill.setDate(validTill.getDate() + 30 * months);
+
+  members.push({ name, phone, paidAmount, startDate, validTill });
+  saveMembers();
+  form.reset();
+});
+
 function renderTable() {
-  tableBody.innerHTML = "";
-  let total = 0;
+  table.innerHTML = "";
+  const now = new Date();
 
   members.forEach((member, index) => {
+    const validTill = new Date(member.validTill);
+    const status = validTill >= now ? "Valid" : "Expired";
+
     const tr = document.createElement("tr");
-    const expiry = new Date(member.expiryDate);
-    const expired = expiry < new Date();
-
-    if (expired) tr.classList.add("expired");
-
-    const whatsappMsg = `Hi ${member.name}, your gym membership has expired. Please pay ₹500 to renew.`;
-
     tr.innerHTML = `
       <td>${member.name}</td>
       <td>${member.phone}</td>
       <td>₹${member.paidAmount}</td>
-      <td>${member.startDate}</td>
-      <td>${expiry.toISOString().split("T")[0]}</td>
-      <td>${expired ? "Expired" : "Active"}</td>
-      <td><a href="https://wa.me/91${member.phone}?text=${encodeURIComponent(whatsappMsg)}" target="_blank">Remind</a></td>
-      <td><button onclick="editMember(${index})">Edit</button></td>
+      <td>${new Date(member.startDate).toLocaleDateString()}</td>
+      <td>${validTill.toLocaleDateString()}</td>
+      <td class="${status === 'Expired' ? 'expired' : 'valid'}">${status}</td>
+      <td>
+        <button onclick="sendReminder(${index})">💬 WhatsApp</button>
+        <button onclick="exportSingle(${index})">📄 PDF</button>
+        <button onclick="deleteMember(${index})">🗑️</button>
+      </td>
     `;
-
-    tableBody.appendChild(tr);
-    total += member.paidAmount;
+    table.appendChild(tr);
   });
-
-  totalAmountDiv.textContent = `Total Collected: ₹${total}`;
 }
 
-function editMember(index) {
+function deleteMember(index) {
+  if (confirm("Delete this member?")) {
+    members.splice(index, 1);
+    saveMembers();
+  }
+}
+
+function sendReminder(index) {
   const member = members[index];
-  const name = prompt("Name", member.name);
-  const phone = prompt("Phone", member.phone);
-  const paid = prompt("Paid Amount", member.paidAmount);
-  const startDate = prompt("Start Date (YYYY-MM-DD)", member.startDate);
+  const msg = `Hi ${member.name}, your gym fee of ₹${member.paidAmount} (starting from ${new Date(member.startDate).toLocaleDateString()}) has expired or is due. Kindly renew it.`;
+  const url = `https://wa.me/91${member.phone}?text=${encodeURIComponent(msg)}`;
+  window.open(url, "_blank");
+}
 
-  if (!name || !phone || !paid || !startDate) return;
+function exportAllToPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text("Gym Members Report", 10, 10);
 
-  const monthsPaid = Math.floor(parseInt(paid) / 500);
-  const expiryDate = new Date(startDate);
-  expiryDate.setDate(expiryDate.getDate() + monthsPaid * 30);
+  let y = 20;
+  members.forEach((m, i) => {
+    doc.text(`${i + 1}. ${m.name} | ₹${m.paidAmount} | Valid Till: ${new Date(m.validTill).toLocaleDateString()}`, 10, y);
+    y += 10;
+  });
 
-  members[index] = { name, phone, paidAmount: parseInt(paid), startDate, expiryDate };
-  saveAndRender();
+  doc.save("Gym_Members_Report.pdf");
+}
+
+function exportSingle(index) {
+  const { jsPDF } = window.jspdf;
+  const m = members[index];
+  const doc = new jsPDF();
+  doc.text(`Member: ${m.name}`, 10, 10);
+  doc.text(`Phone: ${m.phone}`, 10, 20);
+  doc.text(`Amount: ₹${m.paidAmount}`, 10, 30);
+  doc.text(`Start Date: ${new Date(m.startDate).toLocaleDateString()}`, 10, 40);
+  doc.text(`Valid Till: ${new Date(m.validTill).toLocaleDateString()}`, 10, 50);
+  doc.save(`${m.name}_Gym_Fee.pdf`);
 }
 
 renderTable();

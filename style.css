@@ -1,65 +1,37 @@
 body {
-  font-family: Arial, sans-serif;
-  background: #f3f3f3;
-  margin: 0;
+  font-family: Arial;
+  background: #f4f4f4;
   padding: 20px;
 }
-
-h2 {
-  text-align: center;
-}
-
-.login-box, .form {
-  max-width: 400px;
+.container {
+  max-width: 600px;
   margin: auto;
-  padding: 20px;
   background: white;
+  padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 0 10px #ccc;
 }
-
 input, button {
-  width: 100%;
-  margin-top: 10px;
   padding: 10px;
-  font-size: 16px;
+  margin: 5px 0;
+  width: 100%;
+  box-sizing: border-box;
 }
-
 button {
   background: #28a745;
   color: white;
   border: none;
   cursor: pointer;
 }
-
 button:hover {
   background: #218838;
 }
-
-.error {
-  color: red;
-  text-align: center;
-}
-
 table {
   width: 100%;
   margin-top: 20px;
   border-collapse: collapse;
 }
-
 th, td {
-  padding: 12px;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-
-.expired {
-  background-color: #f8d7da !important;
-  color: #721c24;
-}
-
-.export-buttons {
-  max-width: 400px;
-  margin: 20px auto;
-  text-align: center;
+  padding: 8px;
+  border: 1px solid #ccc;
+  text-align: left;
 }

@@ -49,7 +49,7 @@ loginForm.addEventListener('submit', (e) => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
-    if (username === 'hisham' && password === '12345') {
+    if (username === 'admin' && password === '7860') {
         loginContainer.classList.add('hidden');
         dashboardContainer.classList.remove('hidden');
         loadMembers();

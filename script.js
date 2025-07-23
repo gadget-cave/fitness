@@ -2,7 +2,7 @@
 const firebaseConfig = {
     apiKey: "AIzaSyBe_k7RxoQa2g_Vyw3niG_M74pIPw8Mz0U",
     authDomain: "gym-fees-5dbcf.firebaseapp.com",
-    databaseURL: "https://gym-fees-5dbcf-default-rtdb.firebaseio.com", // Ensure databaseURL is present
+    databaseURL: "https://gym-fees-5dbcf-default-rtdb.firebaseio.com", 
     projectId: "gym-fees-5dbcf",
     storageBucket: "gym-fees-5dbcf.firebasestorage.app",
     messagingSenderId: "423386853721",
@@ -23,7 +23,7 @@ const logoutBtn = document.getElementById('logout-btn');
 const memberForm = document.getElementById('member-form');
 const membersList = document.getElementById('members-list');
 const currentDateDisplay = document.getElementById('current-date');
-const statusCards = document.getElementById('status-cards'); // Get reference to status cards container
+const statusCards = document.getElementById('status-cards'); 
 
 // Show today's date
 const today = new Date();
@@ -41,7 +41,7 @@ loginForm.addEventListener('submit', (e) => {
         dashboardContainer.classList.remove('hidden');
         loadMembers();
         setDefaultDate();
-        updateTimestamp(); // Initial update of timestamp on login
+        updateTimestamp(); 
     } else {
         errorMessage.textContent = 'Who are you? Unauthorized access attempted.';
         errorMessage.classList.remove('hidden');
@@ -90,6 +90,8 @@ memberForm.addEventListener('submit', (e) => {
         .then(() => {
             memberForm.reset();
             setDefaultDate();
+            // Member will be automatically added to the table via the Firebase listener
+            // No need to manually call addMemberToTable here
         })
         .catch(error => {
             console.error("Error adding member: ", error);
@@ -100,14 +102,14 @@ memberForm.addEventListener('submit', (e) => {
 function updateStatusCounts(membersData) {
     let activeCount = 0;
     let expiredCount = 0;
-    let totalIncome = 0;
+    let totalIncome = 0; // Income from active members
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today to start of day
+    today.setHours(0, 0, 0, 0); 
 
     for (const key in membersData) {
         const member = membersData[key];
         const endDate = new Date(member.endDate);
-        endDate.setHours(0, 0, 0, 0); // Normalize end date to start of day
+        endDate.setHours(0, 0, 0, 0); 
         
         if (today <= endDate) {
             activeCount++;
@@ -138,29 +140,66 @@ function updateStatusCounts(membersData) {
 }
 
 // Load members from Firebase
+// This function is the core of live data display.
+// Any change in Firebase 'members' node will trigger this.
 function loadMembers() {
     database.ref('members').on('value', (snapshot) => {
-        membersList.innerHTML = '';
+        membersList.innerHTML = ''; // Clear existing table rows
         const membersData = snapshot.val();
         if (membersData) {
-            Object.keys(membersData).forEach((key) => {
-                const member = membersData[key];
-                addMemberToTable(member, key);
+            // Sort members by timestamp for consistent order (newest first)
+            const sortedMembers = Object.keys(membersData).map(key => ({
+                key,
+                ...membersData[key]
+            })).sort((a, b) => b.timestamp - a.timestamp); // Newest first
+
+            sortedMembers.forEach((member) => {
+                addMemberToTable(member, member.key);
             });
             updateStatusCounts(membersData);
         } else {
-            updateStatusCounts({}); // If no members, update counts to zero
+            updateStatusCounts({}); 
         }
         updateTimestamp();
     });
 }
 
-// Add member to the table with edit functionality
+// Function to generate WhatsApp URL with a reminder message
+function getWhatsAppReminderUrl(member) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(member.endDate);
+    endDate.setHours(0, 0, 0, 0);
+    const isExpired = today > endDate;
+
+    let message = `Hello ${member.name},\n\n`;
+
+    if (isExpired) {
+        message += `Your gym membership expired on ${formatDate(member.endDate)}.\n`;
+        message += `Please renew your membership of ₹${member.fee} to continue enjoying our services.`;
+    } else {
+        message += `This is a friendly reminder for your gym membership renewal.\n`;
+        message += `Your current membership is valid until ${formatDate(member.endDate)}.\n`;
+        message += `Please prepare for the renewal payment of ₹${member.fee}.`;
+    }
+    message += `\n\nThank you,\n${encodeURIComponent('Gym Management')}`; // Encode for URL
+
+    // Remove any non-digit characters from mobile number and add country code
+    const mobileNumberClean = member.mobile.replace(/\D/g, ''); 
+    const countryCode = '91'; // Assuming India, change if needed
+    const fullMobileNumber = countryCode + mobileNumberClean;
+
+    // Construct the WhatsApp URL
+    return `https://wa.me/${fullMobileNumber}?text=${encodeURIComponent(message)}`;
+}
+
+
+// Add member to the table with edit and WhatsApp functionality
 function addMemberToTable(member, key) {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today to start of day
+    today.setHours(0, 0, 0, 0); 
     const endDate = new Date(member.endDate);
-    endDate.setHours(0, 0, 0, 0); // Normalize end date to start of day
+    endDate.setHours(0, 0, 0, 0); 
     const isExpired = today > endDate;
     
     const row = document.createElement('tr');
@@ -183,6 +222,13 @@ function addMemberToTable(member, key) {
                 ${isExpired ? 'Expired' : 'Active'}
             </span>
         </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <a href="${getWhatsAppReminderUrl(member)}" target="_blank" 
+               class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm whatsapp-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="inline-block h-4 w-4 mr-1">
+                Remind
+            </a>
+        </td>
     `;
     
     membersList.appendChild(row);
@@ -194,32 +240,35 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
-// PDF Export Functionality
+// PDF Export Functionality - IMPORTANT: Add 'Actions' column to PDF head too
 document.getElementById('export-pdf').addEventListener('click', () => {
     const doc = new jspdf.jsPDF();
     
-    // Title
     doc.setFontSize(18);
     doc.setTextColor(40);
     doc.text('Gym Member Database', 15, 20);
     
-    // Export Date
     doc.setFontSize(10);
     doc.text(`Exported: ${new Date().toLocaleString()}`, 15, 30);
     
-    // Table data
     const tableData = [];
     const tableRows = document.querySelectorAll('#members-list tr');
     
     tableRows.forEach(row => {
-        const rowData = Array.from(row.cells).map(cell => 
-            cell.querySelector('.fee-input') ? cell.querySelector('.fee-input').value : cell.textContent.trim()
-        );
+        const rowData = Array.from(row.cells).map((cell, index) => {
+            if (cell.querySelector('.fee-input')) {
+                return cell.querySelector('.fee-input').value;
+            } else if (cell.querySelector('.whatsapp-btn')) {
+                // For the WhatsApp button column, we might just put "Reminder" or leave empty for PDF
+                return "WhatsApp Reminder"; 
+            }
+            return cell.textContent.trim();
+        });
         tableData.push(rowData);
     });
     
     doc.autoTable({
-        head: [['Name', 'Mobile', 'Fee (₹)', 'Start Date', 'End Date', 'Status']],
+        head: [['Name', 'Mobile', 'Fee (₹)', 'Start Date', 'End Date', 'Status', 'Actions']], // NEW: 'Actions' in PDF head
         body: tableData,
         startY: 40,
         styles: {
@@ -228,12 +277,12 @@ document.getElementById('export-pdf').addEventListener('click', () => {
             overflow: 'linebreak'
         },
         didParseCell: function(data) {
-            if (data.column.index === 5 && data.cell.raw) { // Status column
+            if (data.column.index === 5 && data.cell.raw) { 
                 const statusText = data.cell.raw.textContent.trim();
                 if (statusText === 'Expired') {
-                    data.cell.styles.textColor = [239, 68, 68]; // Tailwind red-500 equivalent
+                    data.cell.styles.textColor = [239, 68, 68]; 
                 } else if (statusText === 'Active') {
-                    data.cell.styles.textColor = [34, 197, 94]; // Tailwind green-500 equivalent
+                    data.cell.styles.textColor = [34, 197, 94]; 
                 }
             }
         }
@@ -254,16 +303,16 @@ setDefaultDate();
 
 // Set up real-time updates for timestamp
 setInterval(() => {
-    if (!dashboardContainer.classList.contains('hidden')) { // Only update if dashboard is visible
+    if (!dashboardContainer.classList.contains('hidden')) { 
         updateTimestamp();
     }
-}, 1000 * 60); // Update every minute
+}, 1000 * 60); 
 
 // Real-time fee editing
 document.addEventListener('change', (e) => {
     if (e.target.classList.contains('fee-input')) {
         const saveBtn = document.querySelector(`.save-btn[data-key="${e.target.dataset.key}"]`);
-        if (saveBtn) { // Ensure button exists
+        if (saveBtn) { 
             saveBtn.classList.remove('hidden');
         }
     }

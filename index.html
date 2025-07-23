@@ -1,41 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gym Members Tracker</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Membership Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>🏋️‍♂️ Gym Members Tracker</h1>
-    <form id="memberForm">
-      <input type="text" id="name" placeholder="Name" required />
-      <input type="text" id="phone" placeholder="Phone (10 digits)" required />
-      <input type="number" id="paidAmount" placeholder="Paid Amount (e.g. 1500)" required />
-      <input type="date" id="startDate" required />
-      <button type="submit">Add Member</button>
-    </form>
+<body class="bg-gray-100 min-h-screen">
+    <div id="app" class="container mx-auto px-4">
+        <div id="login-container" class="flex justify-center items-center h-screen">
+            <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+                <div class="text-center mb-8">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/f4fad6c0-0a0e-4fd4-b48c-2dff22b4c333.png" alt="Gym logo showing dumbbell and fitness text in bold letters" class="mx-auto mb-4" />
+                    <h1 class="text-2xl font-bold text-gray-800">Gym Admin Login</h1>
+                </div>
+                <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
+                        <input type="text" id="username" class="w-full px-3 py-2 border rounded shadow appearance-none" required placeholder="hisham">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                        <input type="password" id="password" class="w-full px-3 py-2 border rounded shadow appearance-none" required placeholder="12345">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150">
+                        Login
+                    </button>
+                </form>
+            </div>
+        </div>
 
-    <h2>Members List</h2>
-    <table id="membersTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Phone</th>
-          <th>Paid</th>
-          <th>Start Date</th>
-          <th>Expiry</th>
-          <th>Status</th>
-          <th>WhatsApp</th>
-          <th>Edit</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div id="totalAmount"></div>
-  </div>
+        <div id="dashboard-container" class="hidden py-8">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/c321c8b1-2be3-419d-8052-90dde091f596.png" alt="Gym management system logo with fitness icons" class="mb-2" />
+                    <h1 class="text-3xl font-bold text-gray-800">Gym Membership System</h1>
+                </div>
+                <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-150">
+                    Logout
+                </button>
+            </header>
 
-  <script src="script.js"></script>
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8 fade-in">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Add New Member</h2>
+                <form id="member-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="member-name">Full Name</label>
+                            <input type="text" id="member-name" class="w-full px-3 py-2 border rounded shadow appearance-none" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="mobile-number">Mobile Number</label>
+                            <input type="tel" id="mobile-number" class="w-full px-3 py-2 border rounded shadow appearance-none" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Membership Fee</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <span class="text-gray-500">₹</span>
+                                </div>
+                                <input type="number" id="fee-amount" class="w-full pl-8 px-3 py-2 border rounded shadow appearance-none" value="500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Membership Start Date</label>
+                            <input type="date" id="start-date" class="w-full px-3 py-2 border rounded shadow appearance-none" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150">
+                        Add Member
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 fade-in">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">Members List</h2>
+                        <span class="text-xs text-green-600" id="last-updated"></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="text-sm text-gray-500" id="current-date"></div>
+                        <button id="export-pdf" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                            Export PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr class="bg-gray-50 border-b">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee (₹)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="members-list" class="divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 mt-6 text-center fade-in">
+                <h3 class="text-lg font-semibold mb-4">Live Members Status</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="status-cards">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,64 +1,184 @@
+/* General Body and Container Enhancements */
 body {
-  font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  padding: 20px;
+    font-family: 'Inter', sans-serif; /* A modern, clean font - consider linking from Google Fonts */
+    background-image: linear-gradient(to right bottom, #f0f4f8, #e6e9ed); /* Subtle gradient background */
+    color: #333; /* Darker default text for readability */
 }
 
-.container {
-  max-width: 800px;
-  margin: auto;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
+/* Enhancements for the main app container */
+#app {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
 }
 
-h1, h2 {
-  text-align: center;
+/* Login Page Specific Styling */
+#login-container .bg-white {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
+#login-container .bg-white:hover {
+    transform: translateY(-5px); /* Lift card slightly on hover */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* More pronounced shadow */
 }
 
-input, button {
-  padding: 10px;
-  font-size: 16px;
+#login-container img {
+    max-width: 150px; /* Adjust logo size */
+    height: auto;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1)); /* Subtle shadow for logo */
 }
 
+/* Dashboard Header Styling */
+header {
+    background-color: #ffffff; /* White background for header */
+    border-radius: 0.75rem; /* Rounded corners for header */
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* Soft shadow */
+    margin-bottom: 2rem; /* Space below header */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header img {
+    height: 50px; /* Adjust height of dashboard logo */
+    margin-right: 1rem;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.1));
+}
+
+header h1 {
+    color: #1a202c; /* Darker heading color */
+}
+
+/* Form and Card Enhancements */
+.bg-white {
+    border-radius: 0.75rem; /* Consistent rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Slightly stronger shadow for cards */
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+input[type="password"] {
+    border: 1px solid #cbd5e0; /* Lighter border color */
+    padding: 0.75rem 1rem; /* More padding */
+    border-radius: 0.5rem; /* Softer rounded corners for inputs */
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+input[type="text"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="password"]:focus {
+    border-color: #3b82f6; /* Blue border on focus */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Soft blue glow on focus */
+    outline: none; /* Remove default outline */
+}
+
+/* Button Styling Enhancements */
 button {
-  background: #28a745;
-  color: white;
-  border: none;
-  cursor: pointer;
+    font-weight: 600; /* Slightly bolder text for buttons */
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
 }
 
 button:hover {
-  background: #218838;
+    transform: translateY(-1px); /* Slight lift on hover */
 }
 
+button:active {
+    transform: translateY(0); /* Press effect */
+}
+
+/* Specific button colors (as per your existing Tailwind) */
+.bg-blue-500 { background-color: #3b82f6; }
+.bg-blue-500:hover { background-color: #2563eb; }
+
+.bg-green-500 { background-color: #22c55e; }
+.bg-green-500:hover { background-color: #16a34a; }
+
+.bg-red-500 { background-color: #ef4444; }
+.bg-red-500:hover { background-color: #dc2626; }
+
+/* Table Enhancements */
 table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+    border-collapse: separate; /* Allows border-radius on cells (though not directly applied here) */
+    border-spacing: 0;
 }
 
 th, td {
-  padding: 8px;
-  border: 1px solid #ccc;
-  text-align: center;
+    padding: 1rem 1.5rem; /* More padding for table cells */
+    border-bottom: 1px solid #e2e8f0; /* Lighter border for rows */
 }
 
+thead th {
+    background-color: #f8fafc; /* Lighter header background */
+    color: #64748b; /* Slightly darker grey for header text */
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+tbody tr:hover {
+    background-color: #f0f8ff; /* Light blue on row hover */
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Status Badges */
+.px-2.inline-flex {
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+    border-radius: 9999px; /* Fully rounded pills */
+    font-size: 0.75rem; /* Slightly smaller font for badges */
+    font-weight: 700; /* Bolder text for badges */
+}
+
+/* Expired row styling - keep existing */
 .expired {
-  background-color: #f8d7da;
-  color: #721c24;
+    background-color: #fee2e2; /* Tailwind red-100 */
+    border-left: 4px solid #ef4444; /* Tailwind red-500 */
 }
 
-#totalAmount {
-  margin-top: 20px;
-  font-weight: bold;
-  text-align: right;
+/* Live Status Cards */
+#status-cards > div {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+#status-cards > div:hover {
+    transform: translateY(-3px); /* Lift on hover */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow on hover */
+}
+
+#status-cards .font-bold.text-2xl {
+    font-size: 2.5rem; /* Slightly larger numbers */
+}
+
+/* Scrollbar Styling (Webkit - for Chrome, Safari) */
+::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color of the scrollbar track */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #a0aec0; /* Color of the scrollbar handle (gray-400) */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #718096; /* Color on hover (gray-600) */
+}
+
+/* Fade-in Animation (existing, just kept here for completeness) */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

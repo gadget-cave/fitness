@@ -68,7 +68,12 @@
                                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <span class="text-gray-500">₹</span>
                                 </div>
-                                <input type="number" id="fee-amount" class="w-full pl-8 px-3 py-2 border rounded shadow appearance-none" value="500">
+                                <select id="fee-amount" class="w-full pl-8 px-3 py-2 border rounded shadow appearance-none" required>
+                                    <option value="">Select Fee</option>
+                                    <option value="500">500 (30 Days)</option>
+                                    <option value="1000">1000 (60 Days)</option>
+                                    <option value="1200">1200 (90 Days)</option>
+                                </select>
                             </div>
                         </div>
                         <div>
@@ -83,14 +88,15 @@
             </div>
 
             <div class="bg-white rounded-lg shadow-md p-6 fade-in">
-                <div class="flex justify-between items-center mb-4">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                     <div>
                         <h2 class="text-xl font-semibold text-gray-800">Members List</h2>
                         <span class="text-xs text-green-600" id="last-updated"></span>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+                        <input type="text" id="search-input" placeholder="Search by name or number..." class="w-full md:w-auto px-3 py-2 border rounded shadow appearance-none">
                         <div class="text-sm text-gray-500" id="current-date"></div>
-                        <button id="export-pdf" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                        <button id="export-pdf" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm w-full md:w-auto">
                             Export PDF
                         </button>
                     </div>

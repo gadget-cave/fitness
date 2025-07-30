@@ -24,6 +24,8 @@ const memberForm = document.getElementById('member-form');
 const membersList = document.getElementById('members-list');
 const currentDateDisplay = document.getElementById('current-date');
 const statusCards = document.getElementById('status-cards'); 
+const searchInput = document.getElementById('search-input'); // New: Search input
+const feeAmountSelect = document.getElementById('fee-amount'); // New: Fee select dropdown
 
 // Confirmation Modal elements
 const confirmModal = document.getElementById('confirm-modal');
@@ -32,6 +34,14 @@ const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
 const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 
 let memberKeyToDelete = null; // To store the key of the member being deleted
+let allMembersData = {}; // New: Cache all members data for search functionality
+
+// Define membership durations based on fees
+const membershipDurations = {
+    "500": 30,  // 500 = 30 days
+    "1000": 60, // 1000 = 60 days
+    "1200": 90  // 1200 = 90 days
+};
 
 // Show today's date
 const today = new Date();
@@ -83,12 +93,19 @@ memberForm.addEventListener('submit', (e) => {
     
     const name = document.getElementById('member-name').value;
     const mobile = document.getElementById('mobile-number').value;
-    const fee = document.getElementById('fee-amount').value;
+    const fee = feeAmountSelect.value; // Get fee from select dropdown
     const startDate = document.getElementById('start-date').value;
     
     const startDateObj = new Date(startDate);
+    const durationDays = membershipDurations[fee]; // Get duration based on selected fee
+
+    if (!durationDays) { // Validate if a fee with a defined duration was selected
+        alert("Please select a valid membership fee.");
+        return;
+    }
+
     const endDateObj = new Date(startDateObj);
-    endDateObj.setDate(startDateObj.getDate() + 30); // 30 days validity
+    endDateObj.setDate(startDateObj.getDate() + durationDays); // Set end date based on duration
     
     const member = {
         name: name,
@@ -103,6 +120,7 @@ memberForm.addEventListener('submit', (e) => {
         .then(() => {
             memberForm.reset();
             setDefaultDate();
+            feeAmountSelect.value = ""; // Reset fee selection
         })
         .catch(error => {
             console.error("Error adding member: ", error);
@@ -150,27 +168,50 @@ function updateStatusCounts(membersData) {
     `;
 }
 
-// --- Load Members from Firebase ---
+// --- Load Members from Firebase and Filter for Search ---
 function loadMembers() {
     database.ref('members').on('value', (snapshot) => {
-        membersList.innerHTML = ''; 
-        const membersData = snapshot.val();
-        if (membersData) {
-            const sortedMembers = Object.keys(membersData).map(key => ({
-                key,
-                ...membersData[key]
-            })).sort((a, b) => b.timestamp - a.timestamp); 
-
-            sortedMembers.forEach((member) => {
-                addMemberToTable(member, member.key);
-            });
-            updateStatusCounts(membersData);
-        } else {
-            updateStatusCounts({}); 
-        }
+        allMembersData = snapshot.val(); // Cache all members data
+        displayMembers(allMembersData); // Display all members initially
+        updateStatusCounts(allMembersData); // Update status counts with all data
         updateTimestamp();
     });
 }
+
+// New: Function to display members (can be filtered)
+function displayMembers(membersToDisplay) {
+    membersList.innerHTML = ''; 
+    if (membersToDisplay) {
+        const sortedMembers = Object.keys(membersToDisplay).map(key => ({
+            key,
+            ...membersToDisplay[key]
+        })).sort((a, b) => b.timestamp - a.timestamp); 
+
+        sortedMembers.forEach((member) => {
+            addMemberToTable(member, member.key);
+        });
+    } else {
+        // No members or no matching members
+    }
+}
+
+// New: Search functionality
+searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    const filteredMembers = {};
+
+    if (allMembersData) {
+        for (const key in allMembersData) {
+            const member = allMembersData[key];
+            // Check if name or mobile number contains the search term
+            if (member.name.toLowerCase().includes(searchTerm) || 
+                member.mobile.toLowerCase().includes(searchTerm)) {
+                filteredMembers[key] = member;
+            }
+        }
+    }
+    displayMembers(filteredMembers); // Display filtered members
+});
 
 // Function to generate WhatsApp URL with a reminder message
 function getWhatsAppReminderUrl(member) {
@@ -218,7 +259,11 @@ function addMemberToTable(member, key) {
         <td class="px-6 py-4 whitespace-nowrap member-mobile" data-field="mobile">${member.mobile}</td>
         <td class="px-6 py-4 whitespace-nowrap member-fee" data-field="fee">
             <span class="fee-display">₹${member.fee}</span>
-            <input type="number" value="${member.fee}" class="border rounded px-2 py-1 w-20 fee-input hidden">
+            <select class="border rounded px-2 py-1 w-20 fee-edit-select hidden">
+                <option value="500" ${member.fee == 500 ? 'selected' : ''}>500</option>
+                <option value="1000" ${member.fee == 1000 ? 'selected' : ''}>1000</option>
+                <option value="1200" ${member.fee == 1200 ? 'selected' : ''}>1200</option>
+            </select>
         </td>
         <td class="px-6 py-4 whitespace-nowrap member-start-date" data-field="startDate">${formatDate(member.startDate)}</td>
         <td class="px-6 py-4 whitespace-nowrap member-end-date" data-field="endDate">${formatDate(member.endDate)}</td>
@@ -292,7 +337,7 @@ membersList.addEventListener('click', (e) => {
         
         // Make Fee editable (toggle input visibility)
         row.querySelector('.fee-display').classList.add('hidden');
-        row.querySelector('.fee-input').classList.remove('hidden');
+        row.querySelector('.fee-edit-select').classList.remove('hidden'); // Show fee select
 
         // Make Start Date editable (convert to input type="date")
         const startDateCell = row.querySelector('.member-start-date');
@@ -320,9 +365,9 @@ membersList.addEventListener('click', (e) => {
         if (nameInput) updatedMember.name = nameInput.value;
         if (mobileInput) updatedMember.mobile = mobileInput.value;
 
-        // Get updated Fee
-        const feeInput = row.querySelector('.fee-input');
-        if (feeInput) updatedMember.fee = feeInput.value;
+        // Get updated Fee from select
+        const feeEditSelect = row.querySelector('.fee-edit-select');
+        if (feeEditSelect) updatedMember.fee = feeEditSelect.value;
 
         // Get updated Start Date
         const startDateInput = row.querySelector('.member-start-date input');
@@ -336,12 +381,18 @@ membersList.addEventListener('click', (e) => {
             const currentMemberData = snapshot.val();
             let finalUpdate = { ...currentMemberData, ...updatedMember };
 
-            // If start date changed or was empty, recalculate end date
-            if (needsDateRecalculation && updatedMember.startDate) {
-                const newStartDateObj = new Date(updatedMember.startDate);
-                const newEndDateObj = new Date(newStartDateObj);
-                newEndDateObj.setDate(newStartDateObj.getDate() + 30);
-                finalUpdate.endDate = newEndDateObj.toISOString().split('T')[0];
+            // If start date changed or a new fee was selected, recalculate end date
+            if ((needsDateRecalculation && updatedMember.startDate) || (updatedMember.fee && updatedMember.fee !== currentMemberData.fee)) {
+                const newStartDateObj = new Date(updatedMember.startDate || currentMemberData.startDate); // Use new or existing start date
+                const newDurationDays = membershipDurations[updatedMember.fee || currentMemberData.fee]; // Use new or existing fee to get duration
+                
+                if (newDurationDays) { // Only recalculate if a valid duration is found
+                    const newEndDateObj = new Date(newStartDateObj);
+                    newEndDateObj.setDate(newStartDateObj.getDate() + newDurationDays);
+                    finalUpdate.endDate = newEndDateObj.toISOString().split('T')[0];
+                } else {
+                    console.warn("Could not determine duration for fee:", updatedMember.fee || currentMemberData.fee); // Warn if duration is not found
+                }
             } else if (!updatedMember.startDate && needsDateRecalculation) {
                  // Handle case where start date is cleared, perhaps set end date to N/A or default
                  finalUpdate.endDate = null; // Or some default like today + 30 days
@@ -471,8 +522,4 @@ setInterval(() => {
     if (!dashboardContainer.classList.contains('hidden')) { 
         updateTimestamp();
     }
-}, 1000 * 60); 
-
-// Event delegation for edit/save/delete buttons
-// We don't need a separate 'change' listener for fee-input anymore
-// The 'edit-btn' will reveal all inputs and 'save-btn' will handle saving them.
+}, 1000 * 60);

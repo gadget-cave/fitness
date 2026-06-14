@@ -41,8 +41,6 @@ const membershipDurations = {
     "500": 30,  // 500 = 30 days
     "800": 60, // 800 = 60 days
     "1200": 90  // 1200 = 90 days
-    "2299": 180 // 2299 = 180 days
-    "3500":365 // 3500 = 365 days
 };
 
 // Show today's date

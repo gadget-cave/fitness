@@ -40,7 +40,9 @@ let allMembersData = {}; // New: Cache all members data for search functionality
 const membershipDurations = {
     "500": 30,  // 500 = 30 days
     "800": 60, // 800 = 60 days
-    "1200": 90  // 1200 = 90 days
+    "1200": 90,  // 1200 = 90 days
+    "2299": 180, // 2299 = 180 days
+    "3499": 365 // 3499 = 365
 };
 
 // Show today's date
